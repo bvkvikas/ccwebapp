@@ -15,8 +15,10 @@
     "bcryptjs": "^2.4.3",
     "core-util-is": "^1.0.2",
     "dotenv": "^8.1.0",
+    "email-validator": "^2.0.4",
     "express": "^4.17.1",
-    "pg": "^7.12.1"
+    "pg": "^7.12.1",
+    "regex": "^0.1.1"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",
