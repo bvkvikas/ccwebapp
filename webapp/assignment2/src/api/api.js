@@ -117,7 +117,8 @@ const updateUser = (request, response) => {
             let update_firstname = firstname || user["firstname"];
             let update_lastname = lastname || user["lastname"];
             if (password != null && password != "") {
-                // if(validator.validatePassword(password)){
+                console.log(password);
+             if(validator.validatePassword(password)){
                 console.log("Updating user with password");
                 bcrypt.hash(password, 10, function (err, hash) {
                     database.query("UPDATE APPUSERS SET firstname=$1, lastname=$2, password=$3, account_updated=$4 \
@@ -136,7 +137,11 @@ const updateUser = (request, response) => {
                             }
                         });
                 });
-                // }
+             }else {
+                return response.status(400).json({
+                    info: 'Password is not strong enough'
+                })
+            }
 
             } else {
                 console.log("Updating user without password");
