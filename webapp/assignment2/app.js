@@ -29,12 +29,4 @@ app.post('/v1/user', api.createUser);
 // app.get('/v1/user/self', api.getUser);
 app.put('/v1/user/self', api.updateUser);
 
-app.get('/v1/user/self', authorization.checkAccess);
-// , function (req,res,next){
-    
-//     // res.status(200).json({
-//     //   "message":"Hello... Today's date is : "+new Date()
-//     // });
-
-
-//   });
+app.get('/v1/user/self', api.getUser);
