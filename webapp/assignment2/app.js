@@ -19,14 +19,7 @@ app.use(
 app.listen(PORT, () => {
     console.log(`App running on PORT ${PORT}.`);
 });
-/*app.get('/', (request, response) => {
-    console.log(request);
-    response.json({
-        info: 'Node.js, Express, and Postgres API'
-    });
-})*/
-app.post('/v1/user', api.createUser);
-// app.get('/v1/user/self', api.getUser);
-app.put('/v1/user/self', api.updateUser);
 
+app.post('/v1/user', api.createUser);
+app.put('/v1/user/self', api.updateUser);
 app.get('/v1/user/self', api.getUser);
