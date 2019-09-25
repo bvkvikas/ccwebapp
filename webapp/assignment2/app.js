@@ -6,6 +6,8 @@ const dotenv = require('dotenv');
 const db = require('./src/db');
 const authorization = require('../assignment2/src/service/authorization');
 
+
+
 dotenv.config();
 const PORT = process.env.PORT;
 app.use(bodyParser.json())
@@ -23,12 +25,16 @@ app.listen(PORT, () => {
         info: 'Node.js, Express, and Postgres API'
     });
 })*/
-app.post('/user/create', api.createUser);
-app.post('/user/get', api.getUser);
-app.post('/user/update', api.updateUser);
+app.post('/v1/user', api.createUser);
+// app.get('/v1/user/self', api.getUser);
+app.put('/v1/user/self', api.updateUser);
 
-app.get('/', authorization.checkAccess, function (req,res,next){
-    res.status(200).json({
-      "message":"Hello... Today's date is : "+new Date()
-    });
-  });
+app.get('/v1/user/self', authorization.checkAccess);
+// , function (req,res,next){
+    
+//     // res.status(200).json({
+//     //   "message":"Hello... Today's date is : "+new Date()
+//     // });
+
+
+//   });

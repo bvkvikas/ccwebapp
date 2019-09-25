@@ -4,19 +4,11 @@ const {
     Client
 } = require('pg');
 
-dotenv.config();
-const {
-    DB_USER,
-    DB_PASSWORD,
-    DB_PORT,
-    DB_SCHEMA
-} = process.env;
-const connectionString = process.env.DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_SCHEMA}`;
+const db = require('../db');
 
-const database = new Client(connectionString);
-const db = require('../api/api');
+const database = db.connection;
 
-let checkAccess = (req, res, next) => {
+let checkAccess = (req, res) => {
     let auth = req.headers['authorization'];
     
     if(!auth){
@@ -30,16 +22,32 @@ let checkAccess = (req, res, next) => {
         let password = creds[1];
         
         if(username!=""&& password!="") {
-            const data = db.validateUser(username);
-            console.log(`my data :: ${data}`);
-                if (data == null) {
-                    return res.status(401).json({
+            database.query(
+                `SELECT * from appusers where emailaddress = $1`, [username], 
+                function(err, result) {
+                    if (err) {
+                        return res.status(500).send({
+                            error: 'Error getting user account'
+                        });
+                    } else {
+                    console.log("Result "+JSON.stringify(result.rows));    
+                    if (result.rows[0] == null) {
+                        return res.status(401).json({
                         message: 'Unauthorized : Invalid emailaddress'
                     })
-                } else {
-                    if (bcrypt.compareSync(password, data.password)) {
-                        next();
                     } else {
+                        
+                        if (bcrypt.compareSync(password, result.rows[0].password)) {
+                            const resultJSON = {
+                                emailaddress: result.rows[0].emailaddress,
+                                firstname: result.rows[0].firstname,
+                                lastname: result.rows[0].lastname,
+                                account_created: result.rows[0].account_created,
+                                account_updated: result.rows[0].account_updated
+                                
+                            };
+                            return res.status(200).json(resultJSON);      
+                        } else {
                         return res.status(401).json({
                             message: 'Unauthorized : Invalid Password'
                         });
@@ -47,6 +55,8 @@ let checkAccess = (req, res, next) => {
                 
             };
 
+                    }
+                });            
         }else{
             res.status(400).json({
                 message:"Please enter all details"

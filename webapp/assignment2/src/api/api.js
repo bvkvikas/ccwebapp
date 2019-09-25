@@ -1,26 +1,9 @@
-const {
-    Client
-} = require('pg');
-const dotenv = require('dotenv');
 const bcrypt = require('bcryptjs');
+const Validator = require('../service/validator');
+const db = require('../db');
+const validator = new Validator();
 
-dotenv.config();
-const {
-    DB_USER,
-    DB_PASSWORD,
-    DB_PORT,
-    DB_SCHEMA
-} = process.env;
-
-const connectionString = process.env.DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_SCHEMA}`;
-const database = new Client(connectionString);
-database.connect(function(err) {
-    if (err) {
-        console.error('could not connect to postgres', err);
-    } else {
-        console.log("successfully connected to postgres");
-    }
-});
+const database = db.connection;
 
 const createUser = (request, response) => {
     const {
@@ -29,23 +12,45 @@ const createUser = (request, response) => {
         firstname,
         lastname
     } = request.body;
-    console.log(emailaddress);
+    
     bcrypt.hash(password, 10, function(err, hash) {
-        database.query(
-            'INSERT INTO APPUSERS (emailaddress, password, firstname, lastname, account_created, account_updated) \
-      VALUES ($1, $2, $3, $4, $5, $6)', [emailaddress, hash, firstname, lastname, new Date(), new Date()],
-            function(err, result) {
-                if (err) {
-                    return response.status(500).send({
-                        error: err
-                    });
-                } else {
-                    return response.status(200).json({
-                        info: 'Inserted successfully'
-                    });
+        if(emailaddress != null && password != null){
+            if(validator.validateEmail(emailaddress)){
+                if(validator.validatePassword(password)){
+                    database.query(
+                        'INSERT INTO APPUSERS (emailaddress, password, firstname, lastname, account_created, account_updated) \
+                  VALUES ($1, $2, $3, $4, $5, $6)', [emailaddress, hash, firstname, lastname, new Date(), new Date()],
+                        function(err, result) {
+                            if (err) {
+                
+                                return response.status(400).json({
+                                    info: 'username already exists'
+                                });
+                            } else {
+                                return response.status(201).json({
+                                    info: 'In successfully'
+                                });
+                            }
+                        });
+                }else{
+                    return response.status(400).json({
+                        info: 'Password is not strong enough'
+                    })
                 }
-            });
-    });
+            }else{
+                return response.status(400).json({
+                    info: 'Invalid email address'
+                })
+            }
+            
+            }else{
+                return response.status(422).json({
+                    info: 'Please enter all details'
+                })
+            }
+        });
+        
+      
 }
 
 const getUser = (request, response) => {
@@ -77,7 +82,7 @@ const validateUser = (emailaddress) => {
                 error: 'Error getting user account'
             });
         } else {
-            checkUser(result.rows[0]);
+            return (result.rows[0]);
         }
       });
     
@@ -103,24 +108,27 @@ const updateUser = (request, response) => {
                 let update_firstname = firstname || user["firstname"];
                 let update_lastname = lastname || user["lastname"];
                 if (password != null && password != "") {
-                    console.log("Updating user with password");
-                    bcrypt.hash(password, 10, function(err, hash) {
-                        database.query("UPDATE APPUSERS SET firstname=$1, lastname=$2, password=$3, account_updated=$4 \
-                where emailaddress = $5",
-                            [update_firstname, update_lastname, hash, new Date(), emailaddress],
-                            function(err, result) {
-                                if (err) {
-                                    return response.status(500).send({
-                                        error: 'Error updating user account'
-                                    });
-                                } else {
-                                    console.info("successfully updated the user");
-                                    return response.status(200).json({
-                                        info: "success"
-                                    })
-                                }
-                            });
-                    });
+                    if(validator.validatePassword(password)){
+                        console.log("Updating user with password");
+                        bcrypt.hash(password, 10, function(err, hash) {
+                            database.query("UPDATE APPUSERS SET firstname=$1, lastname=$2, password=$3, account_updated=$4 \
+                    where emailaddress = $5",
+                                [update_firstname, update_lastname, hash, new Date(), emailaddress],
+                                function(err, result) {
+                                    if (err) {
+                                        return response.status(500).send({
+                                            error: 'Error updating user account'
+                                        });
+                                    } else {
+                                        console.info("successfully updated the user");
+                                        return response.status(200).json({
+                                            info: "success"
+                                        })
+                                    }
+                                });
+                        });
+                    }
+                   
                 } else {
                     console.log("Updating user without password");
                     database.query("UPDATE APPUSERS SET firstname=$1, lastname=$2, account_updated=$3 \
