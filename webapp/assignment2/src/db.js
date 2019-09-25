@@ -36,3 +36,7 @@ client.connect(function(err) {
             }
         });
 });
+
+module.exports = {
+    connection: client
+};
