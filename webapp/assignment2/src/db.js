@@ -21,6 +21,7 @@ client.connect(function(err) {
     }
     const query = client.query(
         'CREATE TABLE IF NOT EXISTS APPUSERS( \
+     id VARCHAR(36) PRIMARY KEY, \
      emailaddress VARCHAR(100) UNIQUE NOT NULL, \
      firstname VARCHAR(40) not null, \
      lastname VARCHAR(40), \
