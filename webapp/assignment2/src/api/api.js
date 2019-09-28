@@ -215,5 +215,6 @@ const getUser = (request, response) => {
 module.exports = {
     createUser,
     getUser,
-    updateUser
+    updateUser,
+    authPromise
 }
