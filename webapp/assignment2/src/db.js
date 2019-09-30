@@ -40,8 +40,9 @@ client.connect(function (err) {
 
 client.query(
     'CREATE TABLE IF NOT EXISTS RECIPE( \
-     recipe_id VARCHAR(36) PRIMARY KEY, \
-     created_ts VARCHAR(100) UNIQUE NOT NULL, \
+     recipe_id VARCHAR(50) PRIMARY KEY, \
+     created_ts timestamp NOT NULL, \
+     updated_ts timestamp NOT NULL,\
      author_id VARCHAR(36),\
      FOREIGN KEY(author_id) REFERENCES APPUSERS(id),\
      cook_time_in_min int NOT NULL, \
@@ -50,7 +51,7 @@ client.query(
      title VARCHAR(200) NOT NULL, \
      cuisine VARCHAR(100) NOT NULL, \
      servings int not null check(servings between 1 and 5),\
-     ingredients VARCHAR(255) NOT NULL \
+     ingredients VARCHAR NOT NULL \
     );',
 
 
@@ -64,9 +65,8 @@ client.query(
 
 client.query(
     'CREATE TABLE IF NOT EXISTS NUTRITION( \
-     id VARCHAR(36) PRIMARY KEY, \
-     recipie_id VARCHAR(36),\
-     FOREIGN KEY(recipie_id) REFERENCES RECIPE(recipe_id), \
+     recipe_id VARCHAR(36) PRIMARY KEY, \
+     FOREIGN KEY(recipe_id) REFERENCES RECIPE(recipe_id), \
      calories int NOT NULL,\
      cholesterol_in_mg FLOAT NOT NULL, \
      sodium_in_mg int NOT NULL,\
@@ -80,6 +80,23 @@ client.query(
             return console.error('Error running create table query', err);
         } else {
             console.log("Successfully created nutrition table.");
+        }
+    });
+
+client.query(
+    'CREATE TABLE IF NOT EXISTS ORDEREDLIST( \
+     id varchar(40) PRIMARY KEY, \
+     recipe_id VARCHAR(36), \
+     FOREIGN KEY(recipe_id) REFERENCES RECIPE(recipe_id), \
+     step_number int NOT NULL,\
+     instruction VARCHAR NOT NULL\
+     );',
+
+    function (err, result) {
+        if (err) {
+            return console.error('Error running create table query', err);
+        } else {
+            console.log("Successfully created instruction ordered list table.");
         }
     });
 module.exports = {
