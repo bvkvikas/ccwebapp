@@ -75,7 +75,7 @@ const createRecipe = (request, response) => {
                         } else {
                             database.query(
                                 'INSERT INTO NUTRITION(recipe_id, calories, cholesterol_in_mg, sodium_in_mg, carbohydrates_in_grams, protein_in_grams) \
-                                    VALUES ($1, $2, $3, $4, $5, $6)',
+                                    VALUES($1, $2, $3, $4, $5, $6) RETURNING calories, cholesterol_in_mg, sodium_in_mg, carbohydrates_in_grams, protein_in_grams ',
                                 [recipeResult.rows[0].recipe_id, nutrition_information.calories, nutrition_information.cholesterol_in_mg, nutrition_information.sodium_in_mg, nutrition_information.carbohydrates_in_grams, nutrition_information.protein_in_grams],
                                 (err, nutritionResult) => {
                                     if (err) {
@@ -84,7 +84,7 @@ const createRecipe = (request, response) => {
                                             info: 'Error while uploading nutrition details'
                                         });
                                     } else {
-                                        console.log(nutritionResult);
+
                                         const values = [];
                                         for (var i in steps) {
                                             values.push([
@@ -94,7 +94,7 @@ const createRecipe = (request, response) => {
                                                 steps[i].instruction
                                             ]);
                                         }
-                                        let query = format('INSERT INTO ORDEREDLIST (id, recipe_id, step_number, instruction) VALUES %L returning recipe_id', values);
+                                        let query = format('INSERT INTO ORDEREDLIST (id, recipe_id, step_number, instruction) VALUES %L returning step_number, instruction', values);
 
                                         console.log(query);
 
