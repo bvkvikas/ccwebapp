@@ -71,7 +71,7 @@ const createUser = (request, response) => {
                 if (validator.validatePassword(password)) {
                     database.query(
                         'INSERT INTO APPUSERS (id, emailaddress, password, firstname, lastname, account_created, account_updated) \
-                  VALUES ($1, $2, $3, $4, $5, $6, $7)', [uuidv1(), emailaddress, hash, firstname, lastname, new Date(), new Date()],
+                  VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, emailaddress,firstname, lastname, account_created, account_updated', [uuidv1(), emailaddress, hash, firstname, lastname, new Date(), new Date()],
                         function (err, result) {
                             if (err) {
 
@@ -80,7 +80,7 @@ const createUser = (request, response) => {
                                 });
                             } else {
                                 return response.status(201).json({
-                                    info: 'In successfully'
+                                    info: result.rows[0]
                                 });
                             }
                         });
