@@ -209,76 +209,101 @@ const updateRecipe = (request, response) => {
         authPromise(request).then(
             function (user) {
                 const user_id = user.id;
-                database.query("SELECT * FROM RECIPE WHERE recipe_id = $1 AND author_id = $2;", [id, user_id], function (err, recipeResult) {
-                    if (err) {
-                        console.log(err);
-                        return response.status(500).json({
-                            info: 'Couldn\'t read from db'
-                        });
-                    } else {
-                        if (recipeResult.rows.length > 0) {
-                            console.log("successfully read Recipe from db");
-                            var recipe = recipeResult.rows[0];
-                            // Update starts
-                            // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                            database.query(
-                                'UPDATE RECIPE SET updated_ts = $1, cook_time_in_min = $2, prep_time_in_min=$3, total_time_in_min=$4, title=$5, cusine=$6, servings=$7, ingredients=$8 \
-                              WHERE recipe_id = $9', [new Date(), cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients_json, recipe.recipe_id],
-                                (err, recipeResult) => {
-                                    if (err) {
-                                        return response.status(400).json({
-                                            info: 'error while inserting recipe'
-                                        });
-                                    } else {
-                                        database.query(
-                                            'UPDATE NUTRITION SET calories=$1, cholesterol_in_mg=$2, sodium_in_mg=$3, carbohydrates_in_grams=$4, protein_in_grams=$5 \
-                                            WHERE recipe_id=$6', [nutrition_information.calories, nutrition_information.cholesterol_in_mg, nutrition_information.sodium_in_mg, nutrition_information.carbohydrates_in_grams, nutrition_information.protein_in_grams, recipe.recipe_id],
-                                            (err, nutritionResult) => {
-                                                if (err) {
+                    database.query("BEGIN", function(err, result){
+                        database.query("SELECT * FROM RECIPE WHERE recipe_id = $1 AND author_id = $2;", [id, user_id], function (err, recipeResult) {
+                            if (err) {
+                                console.log(err);
+                                database.query('ROLLBACK', function(err, result){
+                                    return response.status(500).json({
+                                        info: 'Couldn\'t read from db'
+                                    });
+                                });
+                            } else {
+                                if (recipeResult.rows.length > 0) {
+                                    console.log("successfully read Recipe from db");
+                                    var recipe = recipeResult.rows[0];
+                                    // Update starts
+                                    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                    database.query(
+                                        'UPDATE RECIPE SET updated_ts = $1, cook_time_in_min = $2, prep_time_in_min=$3, total_time_in_min=$4, title=$5, cusine=$6, servings=$7, ingredients=$8 \
+                                      WHERE recipe_id = $9', [new Date(), cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients_json, recipe.recipe_id],
+                                        (err, recipeResult) => {
+                                            if (err) {
+                                                console.log(err);
+                                                console.log("Rolling back");
+                                                database.query('ROLLBACK', function(err, result){
                                                     return response.status(400).json({
-                                                        info: 'Error while updating nutrition details'
-                                                    });
-                                                } else {
-
-                                                    var q = "UPDATE ORDEREDLIST AS OLDLIST SET \
-                                                            step_number = NEWLIST.step_number, \
-                                                            instruction = NEWLIST.instruction \
-                                                        FROM (VALUES";
-                                                    for (var i in steps) {
-                                                        q += "('" + recipe.recipe_id + steps[i].position + "'," + steps[i].position + ",'" + steps[i].instruction + "'),";
-                                                    }
-                                                    q = q.substring(0, q.length - 1); // Remove the last comma from the list
-                                                    q += ") AS NEWLIST(id, step_number, instruction) where NEWLIST.id=OLDLIST.id and OLDLIST.recipe_id = '" + recipe.recipe_id + "'";
-
-                                                    // console.log(q);
-
-                                                    database.query(q, (err, OrderedResult) => {
-                                                        if (err) {
-                                                            console.log(err);
-                                                            return response.status(400).json({
-                                                                info: 'Error while updating recipe steps details'
+                                                    info: 'error while inserting recipe'
+                                                    });    
+                                                });
+                                            } else {
+                                                console.log("Successfully updated recipe");
+                                                database.query(
+                                                'UPDATE NUTRITION SET calories=$1, cholesterol_in_mg=$2, sodium_in_mg=$3, carbohydrates_in_grams=$4, protein_in_grams=$5 \
+                                                WHERE recipe_id=$6', [nutrition_information.calories, nutrition_information.cholesterol_in_mg, nutrition_information.sodium_in_mg, nutrition_information.carbohydrates_in_grams, nutrition_information.protein_in_grams, recipe.recipe_id],
+                                                (err, nutritionResult) => {
+                                                    if (err) {
+                                                        database.query('ROLLBACK', function(err, result){
+                                                            return response.status(500).json({
+                                                                info: 'Couldn\'t read from db'
                                                             });
-                                                        } else {
-                                                            return response.status(200).json({
-                                                                info: 'successfully updated the recipe'
+                                                        });
+                                                    } else {
+                                                        database.query('DELETE FROM ORDEREDLIST WHERE recipe_id = $1', [recipe.recipe_id], function(err, result){
+                                                            if(err) {
+                                                                console.log(err);
+                                                                console.log("Rolling back");
+                                                                database.query('ROLLBACK', function(err, result){
+                                                                    return response.status(500).json({
+                                                                        info: 'Couldn\'t delete from db'
+                                                                    });
+                                                                });
+                                                            } else {
+                                                                const values = [];
+                                                                for (var i in steps) {
+                                                                    values.push([
+                                                                        recipe.recipe_id + steps[i].position,
+                                                                        recipe.recipe_id,
+                                                                        steps[i].position,
+                                                                        steps[i].instruction
+                                                                    ]);
+                                                                }
+                                                                let query = format('INSERT INTO ORDEREDLIST (id, recipe_id, position, instruction) VALUES %L returning position, instruction', values);
+                                                                database.query(query, (err, OrderedResult) => {
+                                                                    if (err) {
+                                                                        console.log(err);
+                                                                        console.log("Rolling back");
+                                                                        database.query('ROLLBACK', function(err, result){
+                                                                            return response.status(500).json({
+                                                                                info: 'Couldn\'t read from db'
+                                                                            });
+                                                                        });
+                                                                    } else {
+                                                                        console.log("Succeessfully updated recipe..");
+                                                                        database.query('COMMIT', function(err, result){
+                                                                            return response.status(200).json({
+                                                                                info: 'Successfully updated the recipe'
+                                                                            });    
+                                                                        });
+                                                                    }
+                                                                });
+                                                            }
                                                             });
                                                         }
+
                                                     });
-
-                                                }
-
-                                            });
-                                    }
-                                });
-                            // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-                            // Update ends
-                        } else {
-                            return response.status(403).json({
-                                info: 'Either the recipe does not exist or you don\'t have permissions to update it.'
-                            });
-                        }
-                    }
-                });
+                                            }
+                                        });
+                                    // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                                    // Update ends
+                                } else {
+                                    return response.status(403).json({
+                                        info: 'Either the recipe does not exist or you don\'t have permissions to update it.'
+                                    });
+                                }
+                            }
+                        });
+                    });
             },
             function (err) {
                 response.status(401).send(err);
@@ -296,15 +321,42 @@ const updateRecipe = (request, response) => {
 const getRecipe = (request, response) => {
     var id = request.params.id;
     database.query(
-        'SELECT recipe_id, created_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
+        'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
         where recipe_id = $1', [id],
-        function (err, result) {
+        function (err, recipeResult) {
             if (err) {
                 return response.status(500).send({
                     error: 'Error getting recipe'
                 });
             } else {
-                return response.status(200).json(result.rows[0]);
+                if (recipeResult.rows.length > 0) {
+                    recipeResult.rows[0].ingredients = JSON.parse(recipeResult.rows[0].ingredients);
+                    database.query("select position, instruction from orderedlist where recipe_id = $1", [recipeResult.rows[0].recipe_id], function(err, resultSteps){
+                        if (err) {
+                            return response.status(500).send({
+                                error: 'Error getting recipe'
+                            });
+                        } else {
+                            database.query("select calories, cholesterol_in_mg, sodium_in_mg, carbohydrates_in_grams, protein_in_grams from nutrition where recipe_id = $1", [recipeResult.rows[0].recipe_id], function(err, resultNutrition){
+                                if (err) {
+                                    return response.status(500).send({
+                                        error: 'Error getting recipe'
+                                    });
+                                } else {
+                                    return response.status(200).json({
+                                        info: recipeResult.rows[0],
+                                        steps: resultSteps.rows,
+                                        nutrition_information: resultNutrition.rows[0]
+                                    });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    return response.status(404).send({
+                        error: 'Recipe does not exist!'
+                    });
+                }
             }
         });
 }
