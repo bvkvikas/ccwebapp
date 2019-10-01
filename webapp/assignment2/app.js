@@ -27,7 +27,8 @@ app.get('/v1/user/self', api.getUser);
 
 app.post('/v1/recipe', recipe.createRecipe);
 // recipe.post('/v1/recipe/:id', recipe.deleteRecipe);
-// recipe.put('/v1/recipe/:id', recipe.udpateRecipe);
-// recipe.get('/v1/recipe/:id', recipe.getRecipe);
+app.put('/v1/recipe/:id', recipe.updateRecipe);
+app.get('/v1/recipe/:id', recipe.getRecipe);
+
 
 module.exports = app;
