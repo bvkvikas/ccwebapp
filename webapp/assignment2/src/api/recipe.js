@@ -47,11 +47,13 @@ const createRecipe = (request, response) => {
         nutrition_information != null) {
 
         if (!(cook_time_in_min % 5 === 0 && prep_time_in_min % 5 === 0)) {
+            console.log("checking cooking time");
             return response.status(450).json({
                 info: 'Please enter cook time and prep time in multiples of 5'
             })
         }
         if (!(servings >= 1 && servings <= 5)) {
+            console.log("checking servings");
             return response.status(450).json({
                 info: 'Servings should be between 1 and 5'
             })
@@ -63,6 +65,7 @@ const createRecipe = (request, response) => {
 
             function (user) {
                 const user_id = user.id;
+                
                 database.query(
                     'INSERT INTO RECIPE (recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cuisine, servings, ingredients) \
                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING *',
@@ -95,9 +98,6 @@ const createRecipe = (request, response) => {
                                             ]);
                                         }
                                         let query = format('INSERT INTO ORDEREDLIST (id, recipe_id, step_number, instruction) VALUES %L returning step_number, instruction', values);
-
-                                        console.log(query);
-
                                         database.query(query, (err, OrderedResult) => {
                                             if (err) {
                                                 database.query('DELETE FROM RECIPE WHERE recipe_id = $1 ', [recipeResult.rows[0].recipe_id]);
@@ -127,10 +127,64 @@ const createRecipe = (request, response) => {
         return response.status(422).json({
             info: 'Please enter all details'
         });
+        
     }
+}
+
+const deleteRecipe = (request, response) => {
+   let id = request.params.id;
+   if (id == null) {
+    res.status(404).json({
+        message: 'Missing Parameters. Bad Request'
+    });
+   } else {
+    authPromise(request).then(
+        function (user) {
+            const user_id = user.id;
+
+        database.query(`Select * from RECIPE where recipe_id = $1`,[id],function(err,result){
+            if(err){
+                return response.status(404).json({
+                    info:'sql error'
+                })
+            }else{
+                if( user_id === result.rows[0].author_id){
+                 if(result.rows[0] !=null){
+                    console.log("Result "+result.rows[0]);  
+                    database.query('DELETE FROM ORDEREDLIST WHERE recipe_id = $1 ', [id]),
+                    database.query('DELETE FROM NUTRITION WHERE recipe_id = $1 ', [id]),
+                    database.query('DELETE FROM RECIPE WHERE recipe_id = $1 ', [id],function(err,result){
+                        if(err){
+                            return response.status(404).json({
+                                info:'sql error'
+                            })
+                        }else{
+                            console.log("Deleted "+id);
+                            return response.status(204).json({
+                                message : "Deleted"
+                            });
+                        }
+                    })
+                 }else{
+                     return response.status(404).json({
+                         message : "No Recipe Exisit for entered ID"
+                     });
+                 }
+                }else{
+                    return response.status(404).json({
+                        message : "you are not authorized to delete this recipe"
+                    });
+                 }
+                
+             }   
+        })
+    }
+    );
+
+}
 }
 
 module.exports = {
     createRecipe,
-
+    deleteRecipe
 }
