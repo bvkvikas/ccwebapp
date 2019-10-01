@@ -34,71 +34,71 @@ client.connect(function (err) {
                 return console.error('Error running create table query', err);
             } else {
                 console.log("Successfully created user table.");
+
+                client.query(
+                    'CREATE TABLE IF NOT EXISTS RECIPE( \
+                     recipe_id VARCHAR(50) PRIMARY KEY, \
+                     created_ts timestamp NOT NULL, \
+                     updated_ts timestamp NOT NULL,\
+                     author_id VARCHAR(36),\
+                     FOREIGN KEY(author_id) REFERENCES APPUSERS(id),\
+                     cook_time_in_min int NOT NULL, \
+                     prep_time_in_min int NOT NULL, \
+                     total_time_in_min int, \
+                     title VARCHAR(200) NOT NULL, \
+                     cusine VARCHAR(100) NOT NULL, \
+                     servings int not null check(servings between 1 and 5),\
+                     ingredients VARCHAR NOT NULL \
+                    );',
+
+
+                    function (err, result) {
+                        if (err) {
+                            return console.error('Error running create table query', err);
+                        } else {
+                            console.log("Successfully created recipe table.");
+                            client.query(
+                                'CREATE TABLE IF NOT EXISTS NUTRITION( \
+                                 recipe_id VARCHAR(36) PRIMARY KEY, \
+                                 FOREIGN KEY(recipe_id) REFERENCES RECIPE(recipe_id), \
+                                 calories int NOT NULL,\
+                                 cholesterol_in_mg FLOAT NOT NULL, \
+                                 sodium_in_mg int NOT NULL,\
+                                 carbohydrates_in_grams FLOAT NOT NULL, \
+                                 protein_in_grams FLOAT NOT NULL\
+                                );',
+
+
+                                function (err, result) {
+                                    if (err) {
+                                        return console.error('Error running create table query', err);
+                                    } else {
+                                        console.log("Successfully created nutrition table.");
+
+                                        client.query(
+                                            'CREATE TABLE IF NOT EXISTS ORDEREDLIST( \
+                                             id varchar(40) PRIMARY KEY, \
+                                             recipe_id VARCHAR(36), \
+                                             FOREIGN KEY(recipe_id) REFERENCES RECIPE(recipe_id), \
+                                             position int NOT NULL,\
+                                             instruction VARCHAR NOT NULL\
+                                             );',
+
+                                            function (err, result) {
+                                                if (err) {
+                                                    return console.error('Error running create table query', err);
+                                                } else {
+                                                    console.log("Successfully created instruction ordered list table.");
+                                                }
+                                            });
+                                    }
+                                });
+                        }
+                    });
             }
         });
 });
 
-client.query(
-    'CREATE TABLE IF NOT EXISTS RECIPE( \
-     recipe_id VARCHAR(50) PRIMARY KEY, \
-     created_ts timestamp NOT NULL, \
-     updated_ts timestamp NOT NULL,\
-     author_id VARCHAR(36),\
-     FOREIGN KEY(author_id) REFERENCES APPUSERS(id),\
-     cook_time_in_min int NOT NULL, \
-     prep_time_in_min int NOT NULL, \
-     total_time_in_min int, \
-     title VARCHAR(200) NOT NULL, \
-     cuisine VARCHAR(100) NOT NULL, \
-     servings int not null check(servings between 1 and 5),\
-     ingredients VARCHAR NOT NULL \
-    );',
-
-
-    function (err, result) {
-        if (err) {
-            return console.error('Error running create table query', err);
-        } else {
-            console.log("Successfully created recipe table.");
-        }
-    });
-
-client.query(
-    'CREATE TABLE IF NOT EXISTS NUTRITION( \
-     recipe_id VARCHAR(36) PRIMARY KEY, \
-     FOREIGN KEY(recipe_id) REFERENCES RECIPE(recipe_id), \
-     calories int NOT NULL,\
-     cholesterol_in_mg FLOAT NOT NULL, \
-     sodium_in_mg int NOT NULL,\
-     carbohydrates_in_grams FLOAT NOT NULL, \
-     protein_in_grams FLOAT NOT NULL\
-    );',
-
-
-    function (err, result) {
-        if (err) {
-            return console.error('Error running create table query', err);
-        } else {
-            console.log("Successfully created nutrition table.");
-        }
-    });
-
-client.query(
-    'CREATE TABLE IF NOT EXISTS ORDEREDLIST( \
-     id varchar(40) PRIMARY KEY, \
-     recipe_id VARCHAR(36), \
-     FOREIGN KEY(recipe_id) REFERENCES RECIPE(recipe_id), \
-     step_number int NOT NULL,\
-     instruction VARCHAR NOT NULL\
-     );',
-
-    function (err, result) {
-        if (err) {
-            return console.error('Error running create table query', err);
-        } else {
-            console.log("Successfully created instruction ordered list table.");
-        }
-    });
 module.exports = {
     connection: client
 };

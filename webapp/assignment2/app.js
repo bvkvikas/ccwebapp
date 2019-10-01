@@ -4,10 +4,6 @@ const app = express();
 const api = require('./src/api/api');
 const recipe = require('./src/api/recipe');
 const dotenv = require('dotenv');
-const db = require('./src/db');
-const authorization = require('../assignment2/src/service/authorization');
-
-
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -27,7 +23,8 @@ app.get('/v1/user/self', api.getUser);
 
 app.post('/v1/recipe', recipe.createRecipe);
 app.delete('/v1/recipe/:id', recipe.deleteRecipe);
-// recipe.put('/v1/recipe/:id', recipe.udpateRecipe);
-// recipe.get('/v1/recipe/:id', recipe.getRecipe);
+app.put('/v1/recipe/:id', recipe.updateRecipe);
+app.get('/v1/recipe/:id', recipe.getRecipe);
+
 
 module.exports = app;
