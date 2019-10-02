@@ -37,7 +37,7 @@ var authPromise = function (req) {
                                 })
                             } else {
                                 if (bcrypt.compareSync(password, result.rows[0].password)) {
-                                    console.log("Auth success!!");
+                                    //     console.log("Auth success!!");
                                     resolve(result.rows[0]);
                                 } else {
                                     reject({
@@ -66,7 +66,7 @@ const createUser = (request, response) => {
     } = request.body;
 
     bcrypt.hash(password, 10, function (err, hash) {
-        if (emailaddress != null && password != null) {
+        if (emailaddress != null && password != null && firstname != null & lastname != null) {
             if (validator.validateEmail(emailaddress)) {
                 if (validator.validatePassword(password)) {
                     database.query(
@@ -125,7 +125,7 @@ const updateUser = (request, response) => {
                 //IF BODY IS UNDEFINED
                 updateEmail = emailaddress2;
             }
-            console.log(` update email:: ${updateEmail}`);
+            // console.log(` update email:: ${updateEmail}`);
             const {
                 firstname,
                 lastname,
@@ -137,7 +137,7 @@ const updateUser = (request, response) => {
             let update_lastname = lastname || user["lastname"];
             if (password != null && password != "") {
                 if (validator.validatePassword(password)) {
-                    console.log("Updating user with password");
+                    //console.log("Updating user with password");
                     bcrypt.hash(password, 10, function (err, hash) {
                         database.query("UPDATE APPUSERS SET firstname=$1, lastname=$2, password=$3, account_updated=$4 \
                 where emailaddress = $5",
@@ -148,7 +148,7 @@ const updateUser = (request, response) => {
                                         error: 'Error updating user account'
                                     });
                                 } else {
-                                    console.info("successfully updated the user");
+                                    //     console.info("successfully updated the user");
                                     return response.status(200).json({
                                         info: "success"
                                     })
@@ -162,18 +162,18 @@ const updateUser = (request, response) => {
                 }
 
             } else {
-                console.log("Updating user without password");
+                // console.log("Updating user without password");
                 database.query("UPDATE APPUSERS SET firstname=$1, lastname=$2, account_updated=$3 \
         where emailaddress = $4",
                     [update_firstname, update_lastname, new Date(), updateEmail],
                     function (err, result) {
                         if (err) {
-                            console.error("eror updating user", err);
+                            // console.error("eror updating user", err);
                             return response.status(500).send({
                                 error: 'Error updating user account'
                             });
                         } else {
-                            console.info("successfully updated the user");
+                            // console.info("successfully updated the user");
                             return response.status(200).json({
                                 info: "success"
                             })
@@ -190,9 +190,9 @@ const updateUser = (request, response) => {
 const getUser = (request, response) => {
     authPromise(request).then(
         function (user) {
-            console.log(user);
+            // console.log(user);
             const email = user.emailaddress;
-            console.log(email);
+            ///console.log(email);
             database.query(
                 'SELECT id, emailaddress, firstname, lastname, account_created, account_updated from APPUSERS \
                   where emailaddress = $1 ', [email],
