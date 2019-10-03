@@ -106,7 +106,6 @@ const createRecipe = (request, response) => {
             function (err) {
                 response.status(401).send(err);
             });
-
     } else {
         return response.status(422).json({
             info: 'Please enter all details'
@@ -117,11 +116,9 @@ const createRecipe = (request, response) => {
 
 const deleteRecipe = (request, response) => {
     let id = request.params.id;
-    if (id == null) {
-        res.status(404).json({
-            message: 'Missing Parameters. Bad Request'
-        });
-    } else {
+
+    if (id != null) {
+
         api.authPromise(request).then(
             function (user) {
                 const user_id = user.id;
@@ -132,40 +129,50 @@ const deleteRecipe = (request, response) => {
                             info: 'sql error'
                         })
                     } else {
-                        if (user_id === result.rows[0].author_id) {
-                            if (result.rows[0] != null) {
-                                console.log("Result " + result.rows[0]);
-                                database.query('DELETE FROM ORDEREDLIST WHERE recipe_id = $1 ', [id]),
-                                    database.query('DELETE FROM NUTRITION WHERE recipe_id = $1 ', [id]),
-                                    database.query('DELETE FROM RECIPE WHERE recipe_id = $1 ', [id], function (err, result) {
-                                        if (err) {
-                                            return response.status(404).json({
-                                                info: 'sql error'
-                                            })
-                                        } else {
+                        if (result.rows.length > 0) {
+                            if (user_id === result.rows[0].author_id) {
+                                if (result.rows[0] != null) {
+                                    console.log("Result " + result.rows[0]);
+                                    database.query('DELETE FROM ORDEREDLIST WHERE recipe_id = $1 ', [id]),
+                                        database.query('DELETE FROM NUTRITION WHERE recipe_id = $1 ', [id]),
+                                        database.query('DELETE FROM RECIPE WHERE recipe_id = $1 ', [id], function (err, result) {
+                                            if (err) {
+                                                return response.status(404).json({
+                                                    info: 'sql error'
+                                                })
+                                            } else {
 
-                                            return response.status(204).json({
-                                                message: "Deleted"
-                                            });
-                                        }
-                                    })
+                                                return response.status(204).json({
+                                                    message: "Deleted"
+                                                });
+                                            }
+                                        })
+                                } else {
+                                    return response.status(404).json({
+                                        message: "No Recipe Exisit for entered ID"
+                                    });
+                                }
                             } else {
                                 return response.status(404).json({
-                                    message: "No Recipe Exisit for entered ID"
+                                    message: "you are not authorized to delete this recipe"
                                 });
                             }
+
                         } else {
                             return response.status(404).json({
-                                message: "you are not authorized to delete this recipe"
+                                message: "Recipe with id not found"
                             });
                         }
-
                     }
                 })
             },
             function (err) {
                 response.status(401).send(err);
             });
+    } else {
+        response.status(404).json({
+            message: 'Missing Parameters. Bad Request'
+        });
     }
 }
 const updateRecipe = (request, response) => {
@@ -238,7 +245,7 @@ const updateRecipe = (request, response) => {
 
                                             database.query(
                                                 'UPDATE NUTRITION SET calories=$1, cholesterol_in_mg=$2, sodium_in_mg=$3, carbohydrates_in_grams=$4, protein_in_grams=$5 \
-                                                WHERE recipe_id=$6', [nutrition_information.calories, nutrition_information.cholesterol_in_mg, nutrition_information.sodium_in_mg, nutrition_information.carbohydrates_in_grams, nutrition_information.protein_in_grams, recipe.recipe_id],
+                                                WHERE recipe_id = $6', [nutrition_information.calories, nutrition_information.cholesterol_in_mg, nutrition_information.sodium_in_mg, nutrition_information.carbohydrates_in_grams, nutrition_information.protein_in_grams, recipe.recipe_id],
                                                 (err, nutritionResult) => {
                                                     if (err) {
                                                         database.query('ROLLBACK', function (err, result) {
@@ -279,9 +286,9 @@ const updateRecipe = (request, response) => {
                                                                     } else {
 
                                                                         database.query('COMMIT', function (err, result) {
-                                                                            return response.status(200).json({
-                                                                                info: 'Successfully updated the recipe'
-                                                                            });
+
+                                                                            getRecipe(request, response);
+                                                                            return response.status(200);
                                                                         });
                                                                     }
                                                                 });
@@ -318,45 +325,51 @@ const updateRecipe = (request, response) => {
 
 const getRecipe = (request, response) => {
     var id = request.params.id;
-    database.query(
-        'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
+    if (id != null) {
+        database.query(
+            'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
         where recipe_id = $1', [id],
-        function (err, recipeResult) {
-            if (err) {
-                return response.status(500).send({
-                    error: 'Error getting recipe'
-                });
-            } else {
-                if (recipeResult.rows.length > 0) {
-                    recipeResult.rows[0].ingredients = JSON.parse(recipeResult.rows[0].ingredients);
-                    database.query("select position, instruction from orderedlist where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, resultSteps) {
-                        if (err) {
-                            return response.status(500).send({
-                                error: 'Error getting recipe'
-                            });
-                        } else {
-                            database.query("select calories, cholesterol_in_mg, sodium_in_mg, carbohydrates_in_grams, protein_in_grams from nutrition where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, resultNutrition) {
-                                if (err) {
-                                    return response.status(500).send({
-                                        error: 'Error getting recipe'
-                                    });
-                                } else {
-                                    return response.status(200).json({
-                                        info: recipeResult.rows[0],
-                                        steps: resultSteps.rows,
-                                        nutrition_information: resultNutrition.rows[0]
-                                    });
-                                }
-                            });
-                        }
+            function (err, recipeResult) {
+                if (err) {
+                    return response.status(500).send({
+                        error: 'Error getting recipe'
                     });
                 } else {
-                    return response.status(404).send({
-                        error: 'Recipe does not exist!'
-                    });
+                    if (recipeResult.rows.length > 0) {
+                        recipeResult.rows[0].ingredients = JSON.parse(recipeResult.rows[0].ingredients);
+                        database.query("select position, instruction from orderedlist where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, resultSteps) {
+                            if (err) {
+                                return response.status(500).send({
+                                    error: 'Error getting recipe'
+                                });
+                            } else {
+                                database.query("select calories, cholesterol_in_mg, sodium_in_mg, carbohydrates_in_grams, protein_in_grams from nutrition where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, resultNutrition) {
+                                    if (err) {
+                                        return response.status(500).send({
+                                            error: 'Error getting recipe'
+                                        });
+                                    } else {
+                                        return response.status(200).json({
+                                            info: recipeResult.rows[0],
+                                            steps: resultSteps.rows,
+                                            nutrition_information: resultNutrition.rows[0]
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        return response.status(404).send({
+                            error: 'Recipe does not exist!'
+                        });
+                    }
                 }
-            }
+            });
+    } else {
+        return response.status(404).send({
+            error: 'Please enter the recipe id'
         });
+    }
 }
 
 module.exports = {
