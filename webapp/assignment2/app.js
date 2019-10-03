@@ -2,11 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
 const api = require('./src/api/api');
+const recipe = require('./src/api/recipe');
 const dotenv = require('dotenv');
-const db = require('./src/db');
-const authorization = require('../assignment2/src/service/authorization');
-
-
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -23,5 +20,14 @@ app.listen(PORT, () => {
 app.post('/v1/user', api.createUser);
 app.put('/v1/user/self', api.updateUser);
 app.get('/v1/user/self', api.getUser);
+
+app.post('/v1/recipe/', recipe.createRecipe);
+app.delete('/v1/recipe/:id', recipe.deleteRecipe);
+app.delete('/v1/recipe/', recipe.deleteRecipe);
+
+app.put('/v1/recipe/:id', recipe.updateRecipe);
+app.get('/v1/recipe/', recipe.getRecipe);
+app.get('/v1/recipe/:id', recipe.getRecipe);
+
 
 module.exports = app;
