@@ -27,13 +27,13 @@ const createRecipe = (request, response) => {
         nutrition_information != null) {
 
         if (!(cook_time_in_min % 5 === 0 && prep_time_in_min % 5 === 0)) {
-            console.log("checking cooking time");
+
             return response.status(450).json({
                 info: 'Please enter cook time and prep time in multiples of 5'
             })
         }
         if (!(servings >= 1 && servings <= 5)) {
-            console.log("checking servings");
+
             return response.status(450).json({
                 info: 'Servings should be between 1 and 5'
             })
@@ -76,7 +76,7 @@ const createRecipe = (request, response) => {
                                                 steps[i].instruction
                                             ]);
                                         }
-                                        console.log(values);
+
                                         let query = format('INSERT INTO ORDEREDLIST (id, recipe_id, position, instruction) VALUES %L returning position, instruction', values);
                                         database.query(query, (err, OrderedResult) => {
                                             if (err) {
@@ -143,7 +143,7 @@ const deleteRecipe = (request, response) => {
                                                 info: 'sql error'
                                             })
                                         } else {
-                                            console.log("Deleted " + id);
+
                                             return response.status(204).json({
                                                 message: "Deleted"
                                             });
@@ -162,9 +162,10 @@ const deleteRecipe = (request, response) => {
 
                     }
                 })
-            }
-        );
-
+            },
+            function (err) {
+                response.status(401).send(err);
+            });
     }
 }
 const updateRecipe = (request, response) => {
@@ -218,7 +219,6 @@ const updateRecipe = (request, response) => {
                             });
                         } else {
                             if (recipeResult.rows.length > 0) {
-                                console.log("successfully read Recipe from db");
                                 var recipe = recipeResult.rows[0];
                                 // Update starts
                                 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -235,7 +235,7 @@ const updateRecipe = (request, response) => {
                                                 });
                                             });
                                         } else {
-                                            console.log("Successfully updated recipe");
+
                                             database.query(
                                                 'UPDATE NUTRITION SET calories=$1, cholesterol_in_mg=$2, sodium_in_mg=$3, carbohydrates_in_grams=$4, protein_in_grams=$5 \
                                                 WHERE recipe_id=$6', [nutrition_information.calories, nutrition_information.cholesterol_in_mg, nutrition_information.sodium_in_mg, nutrition_information.carbohydrates_in_grams, nutrition_information.protein_in_grams, recipe.recipe_id],
@@ -277,7 +277,7 @@ const updateRecipe = (request, response) => {
                                                                             });
                                                                         });
                                                                     } else {
-                                                                        console.log("Succeessfully updated recipe..");
+
                                                                         database.query('COMMIT', function (err, result) {
                                                                             return response.status(200).json({
                                                                                 info: 'Successfully updated the recipe'
