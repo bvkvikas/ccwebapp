@@ -1,3 +1,6 @@
 .env
 webapp/assignment2/node_modules/
-README.md
+ccwebapp/README.md
+infrastructure/aws/terraform/.terraform
+infrastructure/aws/terraform/terraform.tfstate
+infrastructure/aws/terraform/terraform.tfstate.backup
