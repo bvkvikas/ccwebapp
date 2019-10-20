@@ -2,7 +2,6 @@ provider "aws" {
   region = "${var.region}"
 }
 
-
 resource "aws_vpc" "vpc12" {
   cidr_block                     = "${var.cidr_block}"
   enable_dns_hostnames           = true
@@ -76,4 +75,96 @@ resource "aws_route" "route" {
   route_table_id         = "${aws_route_table.routetable.id}"
   destination_cidr_block = "${var.destination_cidr_block}"
   gateway_id             = "${aws_internet_gateway.gw.id}"
+}
+resource "aws_security_group" "application_security_group" {
+  name        = "application_security_group"
+  description = "Application security group"
+  vpc_id      = "${aws_vpc.vpc12.id}"
+
+  ingress {
+    from_port   = 3005
+    to_port     = 3005
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+
+  }
+}
+resource "aws_db_subnet_group" "rds_sn" {
+  name       = "rds_subnet_group"
+  subnet_ids = ["${aws_subnet.subnet2.id}", "${aws_subnet.subnet3.id}"]
+
+  tags = {
+    Name = "DB subnet group"
+  }
+}
+# resource "aws_db_security_group" "rds_sg" {
+#   name = "rds_sg"
+#   ingress {
+#     security_group_name = "${aws_security_group.application_security_group.name}"
+#   }
+#   tags = {
+#     Name = "RDS security group"
+#   }
+# }
+
+resource "aws_db_instance" "rds" {
+  allocated_storage    = 20
+  identifier           = "csye6225-fall2019"
+  multi_az             = false
+  db_subnet_group_name = "${aws_db_subnet_group.rds_sn.name}"
+  engine               = "postgres"
+  engine_version       = "11.5"
+  instance_class       = "db.t2.micro"
+  name                 = "thunderstorm"
+  username             = "thunderstorm"
+  password             = "thunderstorm_123"
+
+}
+
+resource "aws_s3_bucket" "s3" {
+
+  bucket = "dev.krishnavikas.me"
+  acl    = "private"
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "aws:kms"
+      }
+    }
+  }
+  tags = {
+    Name        = "dev.krishnavikas.me"
+    Environment = "dev"
+  }
+}
+
+resource "aws_instance" "instance" {
+  ami           = "${var.ami_id}"
+  instance_type = "t2.micro"
+  root_block_device {
+    volume_type = "gp2"
+    volume_size = 20
+  }
+  tags = {
+    Name = "terraform_ec2_instance"
+  }
 }

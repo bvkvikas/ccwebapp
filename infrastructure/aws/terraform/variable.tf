@@ -35,3 +35,8 @@ variable "destination_cidr_block" {
   type    = "string"
   default = "0.0.0.0/0"
 }
+
+variable "ami_id" {
+  type    = "string"
+  default = ""
+}
