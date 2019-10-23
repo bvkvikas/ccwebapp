@@ -141,7 +141,7 @@ resource "aws_db_instance" "rds" {
 
 resource "aws_s3_bucket" "s3" {
 
-  bucket = "dev.krishnavikas.me"
+  bucket = "dev.recipeonthego.me"
   acl    = "private"
 
   server_side_encryption_configuration {
@@ -152,7 +152,7 @@ resource "aws_s3_bucket" "s3" {
     }
   }
   tags = {
-    Name        = "dev.krishnavikas.me"
+    Name        = "dev.recipeonthego.me"
     Environment = "dev"
   }
 }

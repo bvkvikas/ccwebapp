@@ -89,6 +89,21 @@ client.connect(function (err) {
                                                     return console.error('Error running create table query', err);
                                                 } else {
                                                     console.log("Successfully created instruction ordered list table.");
+                                                    client.query(
+                                                        'CREATE TABLE IF NOT EXISTS IMAGES( \
+                                                         id VARCHAR(36) PRIMARY KEY, \
+                                                         recipe_id VARCHAR(36), \
+                                                         FOREIGN KEY(recipe_id) REFERENCES RECIPE(recipe_id), \
+                                                         url TEXT NOT NULL\
+                                                         );',
+                                                        function (err, result) {
+                                                        if (err) {
+                                                            return console.error('Error running create images query', err);
+                                                        } else {
+                                                            console.log("Successfully created images table.");
+
+                                                        }
+                                                    });
                                                 }
                                             });
                                     }
