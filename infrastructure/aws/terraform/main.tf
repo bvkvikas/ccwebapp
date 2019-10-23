@@ -20,7 +20,7 @@ resource "aws_subnet" "subnet1" {
   cidr_block        = "${var.subnet_cidr_block_1}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
   tags = {
-    vpcname = "${var.vpcname}"
+    vpcname = "${var.subnet1}"
   }
 }
 
@@ -29,7 +29,7 @@ resource "aws_subnet" "subnet2" {
   cidr_block        = "${var.subnet_cidr_block_2}"
   availability_zone = "${data.aws_availability_zones.available.names[1]}"
   tags = {
-    vpcname = "${var.vpcname}"
+    vpcname = "${var.subnet2}"
   }
 }
 
@@ -38,21 +38,21 @@ resource "aws_subnet" "subnet3" {
   cidr_block        = "${var.subnet_cidr_block_3}"
   availability_zone = "${data.aws_availability_zones.available.names[2]}"
   tags = {
-    vpcname = "${var.vpcname}"
+    vpcname = "${var.subnet3}"
   }
 }
 
 resource "aws_internet_gateway" "gw" {
   vpc_id = "${aws_vpc.vpc12.id}"
   tags = {
-    vpcname = "${var.vpcname}"
+    vpcname = "${var.internetGateway}"
   }
 }
 
 resource "aws_route_table" "routetable" {
   vpc_id = "${aws_vpc.vpc12.id}"
   tags = {
-    vpcname = "${var.vpcname}"
+    vpcname = "${var.routetableName}"
   }
 }
 
@@ -76,6 +76,7 @@ resource "aws_route" "route" {
   destination_cidr_block = "${var.destination_cidr_block}"
   gateway_id             = "${aws_internet_gateway.gw.id}"
 }
+
 resource "aws_security_group" "application_security_group" {
   name        = "application_security_group"
   description = "Application security group"
@@ -107,12 +108,13 @@ resource "aws_security_group" "application_security_group" {
 
   }
 }
+
 resource "aws_db_subnet_group" "rds_sn" {
   name       = "rds_subnet_group"
   subnet_ids = ["${aws_subnet.subnet2.id}", "${aws_subnet.subnet3.id}"]
 
   tags = {
-    Name = "DB subnet group"
+    Name = "${var.dbSubnetGroupName}"
   }
 }
 # resource "aws_db_security_group" "rds_sg" {
@@ -141,8 +143,17 @@ resource "aws_db_instance" "rds" {
 
 resource "aws_s3_bucket" "s3" {
 
-  bucket = "dev.krishnavikas.me"
+  bucket = "dev.thunderstorm.me"
   acl    = "private"
+   force_destroy = true
+
+   lifecycle_rule {
+    enabled = true
+    transition {
+      days = 30
+      storage_class = "STANDARD_IA"
+    }
+    }
 
   server_side_encryption_configuration {
     rule {
@@ -152,7 +163,7 @@ resource "aws_s3_bucket" "s3" {
     }
   }
   tags = {
-    Name        = "dev.krishnavikas.me"
+    Name        = "${var.bucketName}"
     Environment = "dev"
   }
 }
@@ -165,6 +176,24 @@ resource "aws_instance" "instance" {
     volume_size = 20
   }
   tags = {
-    Name = "terraform_ec2_instance"
+    Name = "${var.ec2instanceName}"
   }
 }
+
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = "csye6225"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 20
+  write_capacity = 20
+  hash_key       = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+   tags = {
+    Name        = "${var.dynamodbName}"
+    Environment = "dev"
+  }
+  }
