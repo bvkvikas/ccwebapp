@@ -42,32 +42,32 @@ resource "aws_db_subnet_group" "rds_sn" {
 
 
 resource "aws_security_group" "database" {
-  name = "database_security_group"
-  vpc_id = "${var.vpc_id}"
+  name        = "database_security_group"
+  vpc_id      = "${var.vpc_id}"
   description = "allow incoming database connection"
   ingress {
- from_port         = 5432
-  protocol          = "tcp"
-  security_groups = ["${aws_security_group.application_security_group.id}"]
-  to_port           = 5432
-  cidr_blocks     = ["0.0.0.0/0"]
- }
- }
+    from_port       = 5432
+    protocol        = "tcp"
+    security_groups = ["${aws_security_group.application_security_group.id}"]
+    to_port         = 5432
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+}
 
 resource "aws_db_instance" "rds" {
-  allocated_storage    = 20
-  identifier           = "csye6225-fall2019"
-  multi_az             = false
-  db_subnet_group_name = "${aws_db_subnet_group.rds_sn.name}"
-  engine               = "postgres"
-  engine_version       = "11.5"
-  instance_class       = "db.t2.micro"
-  name                 = "thunderstorm"
-  username             = "thunderstorm"
-  password             = "thunderstorm_123"
+  allocated_storage      = 20
+  identifier             = "csye6225-fall2019"
+  multi_az               = false
+  db_subnet_group_name   = "${aws_db_subnet_group.rds_sn.name}"
+  engine                 = "postgres"
+  engine_version         = "11.5"
+  instance_class         = "db.t2.micro"
+  name                   = "thunderstorm"
+  username               = "thunderstorm"
+  password               = "thunderstorm_123"
   vpc_security_group_ids = ["${aws_security_group.database.id}"]
-  skip_final_snapshot  = true
-  publicly_accessible  = true
+  skip_final_snapshot    = true
+  publicly_accessible    = true
 
 }
 
@@ -104,18 +104,18 @@ resource "aws_instance" "instance" {
   key_name      = "${var.key_name}"
 
   ebs_block_device {
-    device_name = "/dev/sda1"
-    volume_type = "gp2"
-    volume_size = 20
+    device_name           = "/dev/sda1"
+    volume_type           = "gp2"
+    volume_size           = 20
     delete_on_termination = true
   }
   tags = {
     Name = "${var.ec2instanceName}"
   }
-  vpc_security_group_ids = ["${aws_security_group.application_security_group.id}"]
+  vpc_security_group_ids      = ["${aws_security_group.application_security_group.id}"]
   associate_public_ip_address = true
-  source_dest_check = false
-  subnet_id = "${var.subnet2_id}"
+  source_dest_check           = false
+  subnet_id                   = "${var.subnet2_id}"
 }
 
 resource "aws_dynamodb_table" "basic-dynamodb-table" {
