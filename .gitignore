@@ -4,3 +4,6 @@ ccwebapp/README.md
 infrastructure/aws/terraform/.terraform
 infrastructure/aws/terraform/terraform.tfstate
 infrastructure/aws/terraform/terraform.tfstate.backup
+**/.terraform/*
+*.tfstate
+*.tfstate.backup
