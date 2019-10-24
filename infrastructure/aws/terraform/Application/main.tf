@@ -58,17 +58,17 @@ resource "aws_db_instance" "rds" {
 
 resource "aws_s3_bucket" "s3" {
 
-  bucket = "dev.thunderstorm.me"
-  acl    = "private"
-   force_destroy = true
+  bucket        = "dev.thunderstorm.me"
+  acl           = "private"
+  force_destroy = true
 
-   lifecycle_rule {
+  lifecycle_rule {
     enabled = true
     transition {
-      days = 30
+      days          = 30
       storage_class = "STANDARD_IA"
     }
-    }
+  }
 
   server_side_encryption_configuration {
     rule {
@@ -101,15 +101,15 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "id"
-  
+
 
   attribute {
     name = "id"
     type = "S"
   }
 
-   tags = {
+  tags = {
     Name        = "${var.dynamodbName}"
     Environment = "dev"
   }
-  }
+}
