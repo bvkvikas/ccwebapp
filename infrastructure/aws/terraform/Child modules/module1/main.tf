@@ -22,5 +22,5 @@ dbSubnetGroupName   = "${var.dbSubnetGroupName}"
 bucketName          = "${var.bucketName}"
 ec2instanceName     = "${var.ec2instanceName}"
 dynamodbName        = "${var.dynamodbName}"
-
+key_name            = "${var.key_name}"
 }

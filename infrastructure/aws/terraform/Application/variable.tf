@@ -23,6 +23,12 @@ variable "subnet_ids" {
   default = ["test-subnet2","test-subnet3"]
 }
 
+variable "key_name" {
+  type    = "string"
+  default = ""
+}
+
+
 #Application Stack reference Variable
 
 variable "ami_id" {
@@ -39,7 +45,7 @@ variable "dbSubnetGroupName" {
 
 variable "bucketName" {
   type    = "string"
-  default = "test-bucket"
+  default = "dev.thunderstorm.me"
 }
 
 
