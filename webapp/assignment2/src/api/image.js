@@ -80,14 +80,15 @@ const uploadImage = (request, response) => {
 										}
 										console.log(`File uploaded successfully. ${data.Location}`);
 										database.query('INSERT INTO IMAGES \
-							        	(id, recipe_id, url) VALUES ($1, $2, $3)', [uuidv4(), recipe_id, data.Location], function (err, result) {
+							        	(id, recipe_id, url) VALUES ($1, $2, $3) RETURNING id,url', [image_uuid, recipe_id, data.Location], function (err, insertResult) {
 											if (err) {
 												return response.status(500).send({
 													error: 'Error storing the file to storage system'
 												});
+											} else {
+												console.log("successfully uploaded the file.");
+												return response.status(200).json(insertResult.rows[0]);
 											}
-											console.log("successfully uploaded the file.");
-											return response.status(204).end();
 										});
 									});
 								});
@@ -159,8 +160,7 @@ const deleteImage = (request, response) => {
 									Bucket: S3_BUCKET_NAME,
 									Key: "images/" + image_id
 								};
-								database.query('DELETE FROM IMAGES WHERE id = $1 \
-									', [image_id], function (err, result) {
+								database.query('DELETE FROM IMAGES WHERE id = $1 ', [image_id], function (err, result) {
 									if (err) {
 										return response.status(500).send({
 											error: 'Error deleting the file from DB'
