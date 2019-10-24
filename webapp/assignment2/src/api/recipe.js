@@ -349,11 +349,20 @@ const getRecipe = (request, response) => {
                                             error: 'Error getting recipe'
                                         });
                                     } else {
-                                        return response.status(200).json({
-                                            info: recipeResult.rows[0],
-                                            steps: resultSteps.rows,
-                                            nutrition_information: resultNutrition.rows[0]
-                                        });
+                                        database.query("select id,url from images where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, imageResult) {
+                                            if (err) {
+                                                return response.status(500).send({
+                                                    error: 'Error getting images data'
+                                                });
+                                            }
+                                            return response.status(200).json({
+                                                image: imageResult.rows[0],
+                                                info: recipeResult.rows[0],
+                                                steps: resultSteps.rows,
+                                                nutrition_information: resultNutrition.rows[0]
+                                            });
+                                        })
+
                                     }
                                 });
                             }
