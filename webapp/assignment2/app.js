@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const app = express();
 const api = require('./src/api/api');
 const recipe = require('./src/api/recipe');
+const image = require('./src/api/image');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -27,7 +28,12 @@ app.delete('/v1/recipe/', recipe.deleteRecipe);
 
 app.put('/v1/recipe/:id', recipe.updateRecipe);
 app.get('/v1/recipe/', recipe.getRecipe);
+app.get('/v1/recipes/', recipe.getNewRecipe);
 app.get('/v1/recipe/:id', recipe.getRecipe);
+
+app.get('/v1/recipe/:recipeId/image/:imageId', image.getImage);
+app.post('/v1/recipe/:recipeId/image', image.uploadImage);
+app.delete('/v1/recipe/:recipeId/image/:imageId', image.deleteImage);
 
 
 module.exports = app;
