@@ -323,6 +323,7 @@ const updateRecipe = (request, response) => {
 }
 
 
+
 const getRecipe = (request, response) => {
     var id = request.params.id;
     if (id != null) {
@@ -381,9 +382,53 @@ const getRecipe = (request, response) => {
     }
 }
 
+const getNewRecipe = (request, response) => {
+    database.query(
+        'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
+       ORDER BY created_ts DESC LIMIT 1',
+        function (err, recipeResult) {
+            if (err) {
+                return response.status(500).send({
+                    error: 'Error getting recipe'
+                });
+            } else {
+                if (recipeResult.rows.length > 0) {
+                    recipeResult.rows[0].ingredients = JSON.parse(recipeResult.rows[0].ingredients);
+                    database.query("select position, instruction from orderedlist where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, resultSteps) {
+                        if (err) {
+                            return response.status(500).send({
+                                error: 'Error getting recipe'
+                            });
+                        } else {
+                            database.query("select calories, cholesterol_in_mg, sodium_in_mg, carbohydrates_in_grams, protein_in_grams from nutrition where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, resultNutrition) {
+                                if (err) {
+                                    return response.status(500).send({
+                                        error: 'Error getting recipe'
+                                    });
+                                } else {
+                                    return response.status(200).json({
+                                        info: recipeResult.rows[0],
+                                        steps: resultSteps.rows,
+                                        nutrition_information: resultNutrition.rows[0]
+                                    });
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    return response.status(404).send({
+                        error: 'Recipe does not exist!'
+                    });
+                }
+            }
+        });
+}
+
+
 module.exports = {
     createRecipe,
     deleteRecipe,
     updateRecipe,
-    getRecipe
+    getRecipe,
+    getNewRecipe
 }

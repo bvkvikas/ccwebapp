@@ -41,6 +41,15 @@ resource "aws_db_subnet_group" "rds_sn" {
 }
 
 
+resource "aws_security_group_rule" "database" {
+  from_port         = 5432
+  protocol          = "tcp"
+  security_group_id = "${aws_security_group.application_security_group.id}"
+  to_port           = 5432
+  type              = "ingress"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 resource "aws_db_instance" "rds" {
   allocated_storage    = 20
   identifier           = "csye6225-fall2019"
@@ -53,6 +62,7 @@ resource "aws_db_instance" "rds" {
   username             = "thunderstorm"
   password             = "thunderstorm_123"
   skip_final_snapshot  = true
+  publicly_accessible  = true
 
 }
 
