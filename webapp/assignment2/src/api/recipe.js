@@ -134,6 +134,7 @@ const deleteRecipe = (request, response) => {
                                 if (result.rows[0] != null) {
                                     console.log("Result " + result.rows[0]);
                                     database.query('DELETE FROM ORDEREDLIST WHERE recipe_id = $1 ', [id]),
+                                        database.query('DELETE FROM IMAGES where recipe_id = $1', [id]),
                                         database.query('DELETE FROM NUTRITION WHERE recipe_id = $1 ', [id]),
                                         database.query('DELETE FROM RECIPE WHERE recipe_id = $1 ', [id], function (err, result) {
                                             if (err) {

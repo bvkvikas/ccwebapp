@@ -63,6 +63,11 @@ variable "destination_cidr_block" {
 }
 
 #Application Stack reference Variable
+variable "key_name" {
+  type    = "string"
+  default = ""
+}
+
 
 variable "ami_id" {
   type    = "string"
@@ -78,7 +83,7 @@ variable "dbSubnetGroupName" {
 
 variable "bucketName" {
   type    = "string"
-  default = "test-bucket"
+  default = "dev.thunderstorm.me"
 }
 
 
