@@ -8,9 +8,15 @@ const {
     DB_USER,
     DB_PASSWORD,
     DB_PORT,
-    DB_SCHEMA
+    DB_SCHEMA,
+    RDS_USER_NAME,
+    RDS_PASSWORD,
+    RDS_DB_NAME,
+    RDS_CONNECTION_STRING
 } = process.env;
-const connectionString = process.env.DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_SCHEMA}`;
+//const connectionString = process.env.DATABASE_URL || `postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_SCHEMA}`;
+
+const connectionString = process.env.DATABASE_URL || `postgres://${RDS_USER_NAME}:${RDS_PASSWORD}@${RDS_CONNECTION_STRING}:5432/${RDS_DB_NAME}`;
 const client = new Client(connectionString);
 
 console.log("Creating the tables..");
@@ -97,13 +103,13 @@ client.connect(function (err) {
                                                          url TEXT NOT NULL\
                                                          );',
                                                         function (err, result) {
-                                                        if (err) {
-                                                            return console.error('Error running create images query', err);
-                                                        } else {
-                                                            console.log("Successfully created images table.");
+                                                            if (err) {
+                                                                return console.error('Error running create images query', err);
+                                                            } else {
+                                                                console.log("Successfully created images table.");
 
-                                                        }
-                                                    });
+                                                            }
+                                                        });
                                                 }
                                             });
                                     }

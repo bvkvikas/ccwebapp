@@ -41,6 +41,15 @@ resource "aws_db_subnet_group" "rds_sn" {
 }
 
 
+resource "aws_security_group_rule" "database" {
+  from_port         = 5432
+  protocol          = "tcp"
+  security_group_id = "${aws_security_group.application_security_group.id}"
+  to_port           = 5432
+  type              = "ingress"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 resource "aws_db_instance" "rds" {
   allocated_storage    = 20
   identifier           = "csye6225-fall2019"
@@ -53,22 +62,23 @@ resource "aws_db_instance" "rds" {
   username             = "thunderstorm"
   password             = "thunderstorm_123"
   skip_final_snapshot  = true
+  publicly_accessible  = true
 
 }
 
 resource "aws_s3_bucket" "s3" {
 
-  bucket = "dev.thunderstorm.me"
-  acl    = "private"
-   force_destroy = true
+  bucket        = "dev.thunderstorm.me"
+  acl           = "private"
+  force_destroy = true
 
-   lifecycle_rule {
+  lifecycle_rule {
     enabled = true
     transition {
-      days = 30
+      days          = 30
       storage_class = "STANDARD_IA"
     }
-    }
+  }
 
   server_side_encryption_configuration {
     rule {
@@ -101,15 +111,15 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   read_capacity  = 20
   write_capacity = 20
   hash_key       = "id"
-  
+
 
   attribute {
     name = "id"
     type = "S"
   }
 
-   tags = {
+  tags = {
     Name        = "${var.dynamodbName}"
     Environment = "dev"
   }
-  }
+}

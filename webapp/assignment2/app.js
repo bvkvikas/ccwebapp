@@ -28,6 +28,7 @@ app.delete('/v1/recipe/', recipe.deleteRecipe);
 
 app.put('/v1/recipe/:id', recipe.updateRecipe);
 app.get('/v1/recipe/', recipe.getRecipe);
+app.get('/v1/recipes/', recipe.getNewRecipe);
 app.get('/v1/recipe/:id', recipe.getRecipe);
 
 app.get('/v1/recipe/:recipeId/image/:imageId', image.getImage);

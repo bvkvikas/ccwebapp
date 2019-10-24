@@ -4,3 +4,4 @@ ccwebapp/README.md
 **/.terraform/*
 *.tfstate
 *.tfstate.backup
+*.tfvars

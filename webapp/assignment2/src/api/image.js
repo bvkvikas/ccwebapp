@@ -6,11 +6,15 @@ const api = require('./api');
 const AWS = require('aws-sdk');
 const formidable = require('formidable');
 const fs = require('fs');
+const dotenv = require('dotenv');
 
+dotenv.config();
+const {
+	S3_BUCKET_NAME
+} = process.env;
+console.log(S3_BUCKET_NAME);
 const ACCEPTABLE_FILE_FORMATS = ['image/jpeg', 'image/png', 'image/jpg'];
 const ACCEPTABLE_FILE_SIZE_BYTES = 5 * 100000; // 500 KBs
-
-const S3_BUCKET_NAME = "dev.recipeonthego.me";
 
 // Create an S3 client
 var s3 = new AWS.S3();
@@ -19,12 +23,12 @@ const uploadImage = (request, response) => {
 	var recipe_id = request.params.recipeId;
 
 	api.authPromise(request).then(
-		function(user) {
+		function (user) {
 			var user_id = user.id;
 			database.query(
 				'SELECT author_id from RECIPE \
         	where recipe_id = $1', [recipe_id],
-				function(err, recipeResult) {
+				function (err, recipeResult) {
 					if (err) {
 						return response.status(500).send({
 							error: 'Error getting recipe'
@@ -67,7 +71,7 @@ const uploadImage = (request, response) => {
 											"name": image_file.name
 										}
 									};
-									s3.upload(params, function(err, data) {
+									s3.upload(params, function (err, data) {
 										if (err) {
 											console.log(err);
 											return response.status(500).send({
@@ -76,14 +80,15 @@ const uploadImage = (request, response) => {
 										}
 										console.log(`File uploaded successfully. ${data.Location}`);
 										database.query('INSERT INTO IMAGES \
-							        	(id, recipe_id, url) VALUES ($1, $2, $3)', [uuidv4(), recipe_id, data.Location], function(err, result) {
+							        	(id, recipe_id, url) VALUES ($1, $2, $3) RETURNING id,url', [image_uuid, recipe_id, data.Location], function (err, insertResult) {
 											if (err) {
 												return response.status(500).send({
 													error: 'Error storing the file to storage system'
 												});
+											} else {
+												console.log("successfully uploaded the file.");
+												return response.status(200).json(insertResult.rows[0]);
 											}
-											console.log("successfully uploaded the file.");
-											return response.status(204).end();
 										});
 									});
 								});
@@ -96,7 +101,7 @@ const uploadImage = (request, response) => {
 					}
 				});
 		},
-		function(err) {
+		function (err) {
 			response.status(401).send(err);
 		}
 	);
@@ -106,39 +111,39 @@ const getImage = (request, response) => {
 	var recipe_id = request.params.recipeId;
 	var image_id = request.params.imageId;
 	if (recipe_id != null && image_id != null) {
-        database.query(
+		database.query(
 			'SELECT id, url from IMAGES\
-			where recipe_id = $1 and id =$2', [recipe_id,image_id],
+			where recipe_id = $1 and id =$2', [recipe_id, image_id],
 			function (err, imageResult) {
-				if (err){
+				if (err) {
 					return response.status(500).send({
-                        error: 'Error getting recipe'
-				});
-			}else {
-				return response.status(200).json(imageResult.rows[0]);
-			}
-	
-		});
-	}else {
-		return response.status(404).json({
-						info: 'Not found'
+						error: 'Error getting recipe'
 					});
+				} else {
+					return response.status(200).json(imageResult.rows[0]);
+				}
+
+			});
+	} else {
+		return response.status(404).json({
+			info: 'Not found'
+		});
 	}
 
-				
+
 };
 
 
 const deleteImage = (request, response) => {
 	var recipe_id = request.params.recipeId;
-	var image_id = request.params.imageId;	
+	var image_id = request.params.imageId;
 	api.authPromise(request).then(
-		function(user) {
+		function (user) {
 			var user_id = user.id;
 			database.query(
 				'SELECT author_id from RECIPE \
         	where recipe_id = $1', [recipe_id],
-				function(err, recipeResult) {
+				function (err, recipeResult) {
 					if (err) {
 						return response.status(500).send({
 							error: 'Error getting recipe'
@@ -155,25 +160,24 @@ const deleteImage = (request, response) => {
 									Bucket: S3_BUCKET_NAME,
 									Key: "images/" + image_id
 								};
-									database.query('DELETE FROM IMAGES WHERE id = $1 \
-									', [image_id], function(err, result) {
+								database.query('DELETE FROM IMAGES WHERE id = $1 ', [image_id], function (err, result) {
+									if (err) {
+										return response.status(500).send({
+											error: 'Error deleting the file from DB'
+										});
+									}
+									console.log("successfully deleted the file.");
+									s3.deleteObject(params, function (err, data) {
 										if (err) {
 											return response.status(500).send({
-												error: 'Error deleting the file from DB'
+												error: 'Error deleting the file from storage system'
 											});
 										}
-										console.log("successfully deleted the file.");
-										s3.deleteObject(params, function(err, data) {
-											if (err) {
-												return response.status(500).send({
-													error: 'Error deleting the file from storage system'
-												});
-											}
-											console.log('File deleted successfully.');
-											return response.status(204).end();
+										console.log('File deleted successfully.');
+										return response.status(204).end();
 									});
 								});
-								
+
 							}
 						} else {
 							return response.status(404).send({
@@ -183,7 +187,7 @@ const deleteImage = (request, response) => {
 					}
 				});
 		},
-		function(err) {
+		function (err) {
 			response.status(401).send(err);
 		}
 	);
