@@ -22,5 +22,6 @@ module "my_ec2" {
   dbSubnetGroupName  = "${var.dbSubnetGroupName}"
   bucketName         = "${var.bucketName}"
   dynamodbName       = "${var.dynamodbName}"
+  key_name           = "${var.key_name}"
 
 }

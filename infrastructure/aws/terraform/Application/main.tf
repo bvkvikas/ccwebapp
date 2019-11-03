@@ -356,7 +356,7 @@ resource "aws_codedeploy_app" "codedeploy_app" {
 
 resource "aws_codedeploy_deployment_group" "codedeploy_deployment_group" {
   app_name               = "${aws_codedeploy_app.codedeploy_app.name}"
-  deployment_group_name  = "codedeploy_deployment_group"
+  deployment_group_name  = "csye6225-webapp-deployment"
   deployment_config_name = "CodeDeployDefault.AllAtOnce"
   service_role_arn       = "${aws_iam_role.CodeDeployServiceRole2.arn}"
 
