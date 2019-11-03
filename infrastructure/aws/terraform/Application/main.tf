@@ -279,7 +279,9 @@ resource "aws_iam_policy" "CodeDeployEC2S3" {
                 "s3:List*"
               ],
               "Effect": "Allow",
-              "Resource": "arn:aws:s3:::${var.codedeployS3Bucket}/*"
+              "Resource": ["arn:aws:s3:::${var.codedeployS3Bucket}/*",
+                          "arn:aws:s3:::aws-codedeploy-us-east-2/*",
+                          "arn:aws:s3:::aws-codedeploy-us-east-1/*"]
               
         }
     ]
