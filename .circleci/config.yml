@@ -57,4 +57,4 @@ jobs:
             --deployment-group-name csye6225-webapp-deployment \
             --s3-location bucket=${S3_BUCKET_ADDR},bundleType=zip,key=deployments/csye6225-web-app-${CIRCLE_BUILD_NUM}.zip \
             --region us-east-1\
-            --output json
+            --output text
