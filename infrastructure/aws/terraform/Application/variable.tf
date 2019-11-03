@@ -23,18 +23,8 @@ variable "subnet_ids" {
   default = ["test-subnet2", "test-subnet3"]
 }
 
-variable "key_name" {
-  type    = "string"
-  default = ""
-}
 
 
-#Application Stack reference Variable
-
-variable "ami_id" {
-  type    = "string"
-  default = ""
-}
 
 
 variable "dbSubnetGroupName" {
@@ -58,4 +48,29 @@ variable "ec2instanceName" {
 variable "dynamodbName" {
   type    = "string"
   default = "test-table"
+}
+
+
+
+variable "codedeployS3Bucket" {
+  type    = "string"
+  default = "blah"
+}
+variable "accountId" {
+  type    = "string"
+  default = "blah"
+}
+
+variable "codeDeployApplicationName" {
+  type    = "string"
+  default = "blah"
+}
+
+variable "ami_id" {
+  type    = "string"
+  default = ""
+}
+variable "key_name" {
+  type    = "string"
+  default = ""
 }
