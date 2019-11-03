@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 
 files:
-  - source: ./webbapp/assignment2
+  - source: ./
     destination: /home/centos
 permissions:
   - object: /home/centos
