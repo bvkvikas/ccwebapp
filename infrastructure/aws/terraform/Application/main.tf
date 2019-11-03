@@ -310,15 +310,15 @@ resource "aws_iam_role" "CodeDeployEC2ServiceRole1" {
 EOF
 }
 
+resource "aws_iam_role_policy_attachment" "role1-attach" {
+  role       = "${aws_iam_role.CodeDeployEC2ServiceRole1.name}"
+  policy_arn = "${aws_iam_policy.CodeDeployEC2S3.arn}"
+}
 resource "aws_iam_instance_profile" "role1_profile" {
   name = "CodeDeployEC2ServiceRole"
   role = "${aws_iam_role.CodeDeployEC2ServiceRole1.name}"
 }
 
-resource "aws_iam_role_policy_attachment" "role1-attach" {
-  role       = "${aws_iam_role.CodeDeployEC2ServiceRole1.name}"
-  policy_arn = "${aws_iam_policy.CodeDeployEC2S3.arn}"
-}
 
 resource "aws_iam_role" "CodeDeployServiceRole2" {
   name        = "CodeDeployEC2ServiceRole2"
