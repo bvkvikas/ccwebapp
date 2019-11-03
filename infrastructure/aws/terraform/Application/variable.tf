@@ -66,6 +66,12 @@ variable "codeDeployApplicationName" {
   default = "blah"
 }
 
+variable "codeDeployApplicationGroup" {
+  type    = "string"
+  default = "blah"
+}
+
+
 variable "ami_id" {
   type    = "string"
   default = ""

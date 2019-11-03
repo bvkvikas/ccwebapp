@@ -161,25 +161,6 @@ resource "aws_s3_bucket" "codeDeployS3Bucket" {
 
 }
 
-resource "aws_s3_bucket_policy" "codeDeployS3BucketPolicy" {
-  bucket = "${aws_s3_bucket.codeDeployS3Bucket.id}"
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Id": "codeDeployS3BucketPolicy",
-  "Statement": [
-    {
-      "Sid": "IPAllow",
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:*",
-      "Resource": "arn:aws:s3:::${var.codedeployS3Bucket}/*"
-    }
-  ]
-}
-EOF
-}
 
 resource "aws_iam_policy" "CircleCI-Upload-To-S3" {
   name        = "CircleCI-Upload-To-S3"
@@ -190,11 +171,13 @@ resource "aws_iam_policy" "CircleCI-Upload-To-S3" {
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Effect": "Allow",
       "Action": [
         "s3:PutObject"
       ],
-      "Effect": "Allow",
-      "Resource": "arn:aws:s3:::${var.codedeployS3Bucket}/*"
+      "Resource": [
+        "*"
+        ]
     }
   ]
 }
@@ -236,6 +219,7 @@ resource "aws_iam_policy" "CircleCI-Code-Deploy" {
         "codedeploy:GetDeploymentConfig"
       ],
       "Resource": [
+        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:${var.codeDeployApplicationGroup}",
         "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:CodeDeployDefault.OneAtATime",
         "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:CodeDeployDefault.HalfAtATime",
         "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:CodeDeployDefault.AllAtOnce"
@@ -279,9 +263,7 @@ resource "aws_iam_policy" "CodeDeployEC2S3" {
                 "s3:List*"
               ],
               "Effect": "Allow",
-              "Resource": ["arn:aws:s3:::${var.codedeployS3Bucket}/*",
-                          "arn:aws:s3:::aws-codedeploy-us-east-2/*",
-                          "arn:aws:s3:::aws-codedeploy-us-east-1/*"]
+              "Resource": "*"
               
         }
     ]

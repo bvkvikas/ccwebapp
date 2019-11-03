@@ -113,3 +113,8 @@ variable "codeDeployApplicationName" {
   type    = "string"
   default = "blah"
 }
+
+variable "codeDeployApplicationGroup" {
+  type    = "string"
+  default = "blah"
+}

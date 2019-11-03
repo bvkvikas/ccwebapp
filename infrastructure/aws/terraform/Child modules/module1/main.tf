@@ -25,4 +25,5 @@ module "my_ec2" {
   key_name                  = "${var.key_name}"
   accountId                 = "${var.accountId}"
   codeDeployApplicationName = "${var.codeDeployApplicationName}"
+  codeDeployApplicationGroup = "${var.codeDeployApplicationGroup}"
 }
