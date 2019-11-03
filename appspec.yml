@@ -1,0 +1,32 @@
+version: 0.0
+os: linux
+
+files:
+  - source: ./webapp
+    destination: /home/centos/node-app
+permissions:
+  - object: /home/centos/node-app
+    owner: centos
+    group: centos
+    mode: 700
+    type:
+      - file
+  - object: /home/centos/node-app
+    owner: centos
+    group: centos
+    mode: 700
+    type:
+      - directory
+
+hooks:
+  ApplcationStop:
+    - location: ./applicationStop.sh
+      timeout: 180
+
+  AfterInstall:
+    - location: ./afterInstall.sh
+      timeout: 180
+
+  ApplicationStart:
+    - location: ./applicationStart.sh
+      timeout: 180
