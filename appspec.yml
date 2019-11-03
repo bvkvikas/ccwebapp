@@ -1,12 +1,32 @@
-# version: 0.0
-# os: linux
+version: 0.0
+os: linux
 
-# files:             
-#   - source: ./webapp/build/libs/ROOT.war
-#     destination: /opt/tomcat/webapps
+files:
+  - source: ./webbapp/assignment2
+    destination: /home/centos
+permissions:
+  - object: /home/centos
+    owner: centos
+    group: centos
+    mode: 700
+    type:
+      - file
+  - object: /home/centos
+    owner: centos
+    group: centos
+    mode: 700
+    type:
+      - directory
 
-# hooks:
-#   AfterInstall:
-#    - location: ./afterInstall.sh
-#      timeout: 180
-#      runas: centos
+hooks:
+  ApplcationStop:
+    - location: ./applicationStop.sh
+      timeout: 500
+
+  AfterInstall:
+    - location: ./afterInstall.sh
+      timeout: 500
+
+  ApplicationStart:
+    - location: ./applicationStart.sh
+      timeout: 500
