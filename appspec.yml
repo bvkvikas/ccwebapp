@@ -18,15 +18,15 @@ permissions:
     type:
       - directory
 
-# hooks:
-#   ApplcationStop:
-#     - location: ./applicationStop.sh
-#       timeout: 500
+hooks:
+  ApplcationStop:
+    - location: ./applicationStop.sh
+      timeout: 500
 
-#   AfterInstall:
-#     - location: ./afterInstall.sh
-#       timeout: 500
+  AfterInstall:
+    - location: ./afterInstall.sh
+      timeout: 500
 
-#   ApplicationStart:
-#     - location: ./applicationStart.sh
-#       timeout: 500
+  ApplicationStart:
+    - location: ./applicationStart.sh
+      timeout: 500
