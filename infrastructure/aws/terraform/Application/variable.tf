@@ -80,3 +80,7 @@ variable "key_name" {
   type    = "string"
   default = ""
 }
+
+variable "aws_circleci_user_name" {
+  type = "string"
+}

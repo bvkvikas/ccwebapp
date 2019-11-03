@@ -26,4 +26,5 @@ module "my_ec2" {
   accountId                 = "${var.accountId}"
   codeDeployApplicationName = "${var.codeDeployApplicationName}"
   codeDeployApplicationGroup = "${var.codeDeployApplicationGroup}"
+  aws_circleci_user_name     = "${var.aws_circleci_user_name}"
 }
