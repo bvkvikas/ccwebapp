@@ -14,13 +14,13 @@ module "my_vpc" {
 module "my_ec2" {
   source = "../../Application"
 
-  vpc_id            = "${module.my_vpc.vpc_id}"
-  subnet2_id        = "${module.my_vpc.public_subnet_id2}"
-  subnet3_id        = "${module.my_vpc.public_subnet_id3}"
-  ami_id            = "${var.ami_id}"
-  dbSubnetGroupName = "${var.dbSubnetGroupName}"
-  bucketName        = "${var.bucketName}"
-  ec2instanceName   = "${var.ec2instanceName}"
-  dynamodbName      = "${var.dynamodbName}"
-  key_name          = "${var.key_name}"
+  vpc_id             = "${module.my_vpc.vpc_id}"
+  subnet2_id         = "${module.my_vpc.public_subnet_id2}"
+  subnet3_id         = "${module.my_vpc.public_subnet_id3}"
+  ami_id             = "${var.ami_id}"
+  codedeployS3Bucket = "${var.codedeployS3Bucket}"
+  dbSubnetGroupName  = "${var.dbSubnetGroupName}"
+  bucketName         = "${var.bucketName}"
+  dynamodbName       = "${var.dynamodbName}"
+
 }

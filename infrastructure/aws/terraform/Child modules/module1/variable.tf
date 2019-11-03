@@ -97,3 +97,19 @@ variable "dynamodbName" {
   type    = "string"
   default = "test-table"
 }
+
+variable "codedeployS3Bucket" {
+  type    = "string"
+  default = "blah"
+}
+
+
+variable "accountId" {
+  type    = "string"
+  default = "blah"
+}
+
+variable "codeDeployApplicationName" {
+  type    = "string"
+  default = "blah"
+}
