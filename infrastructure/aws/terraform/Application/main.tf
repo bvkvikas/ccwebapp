@@ -161,25 +161,25 @@ resource "aws_s3_bucket" "codeDeployS3Bucket" {
 
 }
 
-resource "aws_s3_bucket_policy" "codeDeployS3BucketPolicy" {
-  bucket = "${aws_s3_bucket.codeDeployS3Bucket.id}"
+# resource "aws_s3_bucket_policy" "codeDeployS3BucketPolicy" {
+#   bucket = "${aws_s3_bucket.codeDeployS3Bucket.id}"
 
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Id": "codeDeployS3BucketPolicy",
-  "Statement": [
-    {
-      "Sid": "IPAllow",
-      "Effect": "Allow",
-      "Principal": "*",
-      "Action": "s3:*",
-      "Resource": "arn:aws:s3:::${var.codedeployS3Bucket}/*"
-    }
-  ]
-}
-EOF
-}
+#   policy = <<EOF
+# {
+#   "Version": "2012-10-17",
+#   "Id": "codeDeployS3BucketPolicy",
+#   "Statement": [
+#     {
+#       "Sid": "IPAllow",
+#       "Effect": "Allow",
+#       "Principal": "*",
+#       "Action": "s3:*",
+#       "Resource": "arn:aws:s3:::${var.codedeployS3Bucket}/*"
+#     }
+#   ]
+# }
+# EOF
+# }
 
 resource "aws_iam_policy" "CircleCI-Upload-To-S3" {
   name        = "CircleCI-Upload-To-S3"
