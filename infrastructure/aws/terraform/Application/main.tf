@@ -366,6 +366,50 @@ resource "aws_s3_bucket" "codeDeployBucket" {
 
 }
 
+resource "aws_codedeploy_app" "codedeploy_app" {
+  name = "csye6225-webapp"
+}
+
+# resource "aws_sns_topic" "example" {
+#   name = "example-topic"
+# }
+
+resource "aws_codedeploy_deployment_group" "codedeploy_deployment_group" {
+  app_name               = "csye6225-webapp"
+  deployment_group_name  = "csye6225-webapp-deployment"
+  deployment_config_name = "CodeDeployDefault.AllAtOnce"
+  service_role_arn       = "${aws_iam_role.role2.arn}"
+
+  ec2_tag_set {
+    ec2_tag_filter {
+      key   = "name"
+      type  = "KEY_AND_VALUE"
+      value = "Codedeploy_ec2"
+    }
+  }
+  deployment_style {
+    deployment_option = "WITHOUT_TRAFFIC_CONTROL"
+    deployment_type   = "IN_PLACE"
+  }
+
+  # trigger_configuration {
+  #   trigger_events     = ["DeploymentFailure"]
+  #   trigger_name       = "example-trigger"
+  #   trigger_target_arn = "${aws_sns_topic.example.arn}"
+  # }
+
+  auto_rollback_configuration {
+    enabled = true
+    events  = ["DEPLOYMENT_FAILURE"]
+  }
+
+  alarm_configuration {
+    alarms  = ["my-alarm-name"]
+    enabled = true
+  }
+}
+
+
 resource "aws_instance" "web-1" {
   ami               = "${var.ami_id}"
   instance_type     = "t2.micro"
