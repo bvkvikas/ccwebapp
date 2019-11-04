@@ -2,8 +2,16 @@ const db = require('../db');
 const uuidv4 = require('uuid/v4');
 const database = db.connection;
 const format = require('pg-format');
+const AWS = require('aws-sdk');
 const api = require('./api');
 
+const {
+	S3_BUCKET_NAME
+} = process.env;
+
+
+// Create an S3 client
+var s3 = new AWS.S3();
 
 const createRecipe = (request, response) => {
     const {
@@ -133,6 +141,31 @@ const deleteRecipe = (request, response) => {
                             if (user_id === result.rows[0].author_id) {
                                 if (result.rows[0] != null) {
                                     console.log("Result " + result.rows[0]);
+                                    database.query('select * from IMAGES where recipe_id = $1', [id], function(err, imgresult){
+                                        if (err){
+                                            return response.status(404).json({info: 'sql error'})
+                                        } else{
+                                            if (imgresult.rows.length > 0) {
+                                                imgresult.rows.forEach(function(img){
+                                                    const params = {
+                                                        Bucket: S3_BUCKET_NAME,
+                                                        Key: "images/" + img.id
+                                                    };
+                                                    s3.deleteObject(params, function (err, data) {
+                                                        if (err) {
+                                                            return response.status(500).send({
+                                                                error: 'Error deleting the file from storage system'
+                                                            });
+                                                        }
+                                                        console.log('File deleted successfully from S3 bucket.');
+                                                        return response.status(204).end();
+                                                    });    
+
+                                                });
+
+                                            }
+                                        }
+                                    })
                                     database.query('DELETE FROM ORDEREDLIST WHERE recipe_id = $1 ', [id]),
                                         database.query('DELETE FROM IMAGES where recipe_id = $1', [id]),
                                         database.query('DELETE FROM NUTRITION WHERE recipe_id = $1 ', [id]),
@@ -142,7 +175,6 @@ const deleteRecipe = (request, response) => {
                                                     info: 'sql error'
                                                 })
                                             } else {
-
                                                 return response.status(204).json({
                                                     message: "Deleted"
                                                 });
@@ -358,7 +390,7 @@ const getRecipe = (request, response) => {
                                                 });
                                             }
                                             return response.status(200).json({
-                                                image: imageResult.rows[0],
+                                                image: imageResult.rows,
                                                 info: recipeResult.rows[0],
                                                 steps: resultSteps.rows,
                                                 nutrition_information: resultNutrition.rows[0]
@@ -384,6 +416,7 @@ const getRecipe = (request, response) => {
 }
 
 const getNewRecipe = (request, response) => {
+
     database.query(
         'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
        ORDER BY created_ts DESC LIMIT 1',
@@ -407,11 +440,20 @@ const getNewRecipe = (request, response) => {
                                         error: 'Error getting recipe'
                                     });
                                 } else {
-                                    return response.status(200).json({
-                                        info: recipeResult.rows[0],
-                                        steps: resultSteps.rows,
-                                        nutrition_information: resultNutrition.rows[0]
-                                    });
+                                    database.query("select id,url from images where recipe_id = $1", [recipeResult.rows[0].recipe_id], function (err, imageResult) {
+                                        if (err) {
+                                            return response.status(500).send({
+                                                error: 'Error getting images data'
+                                            });
+                                        }
+                                        return response.status(200).json({
+                                            image: imageResult.rows,
+                                            info: recipeResult.rows[0],
+                                            steps: resultSteps.rows,
+                                            nutrition_information: resultNutrition.rows[0]
+                                        });
+                                    })
+
                                 }
                             });
                         }
@@ -423,6 +465,7 @@ const getNewRecipe = (request, response) => {
                 }
             }
         });
+
 }
 
 
