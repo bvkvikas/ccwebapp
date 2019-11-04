@@ -422,13 +422,6 @@ resource "aws_instance" "web-1" {
                       echo BEGIN
                       date '+%Y-%m-%d %H:%M:%S'
                       echo END
-                      sudo yum update -y
-                      sudo yum install ruby -y
-                      sudo yum install wget -y
-                      cd /home/centos
-                      wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
-                      chmod +x ./install
-                      sudo ./install auto
                       sudo service codedeploy-agent status
                       sudo service codedeploy-agent start
                       sudo service codedeploy-agent status
