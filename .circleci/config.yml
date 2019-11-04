@@ -3,7 +3,7 @@ jobs:
   build:
     branches:
         only:
-          - Assignment7_KV
+          - Assignment7_PJ
     docker:
       - image: circleci/python:3.6-jessie
     steps:
@@ -50,7 +50,6 @@ jobs:
       - run:
           name: Make CodeDeploy API call
           command: |
-            
             aws deploy create-deployment \
             --application-name csye6225-webapp \
             --deployment-config-name CodeDeployDefault.AllAtOnce \
