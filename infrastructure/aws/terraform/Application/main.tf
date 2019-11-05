@@ -103,6 +103,33 @@ resource "aws_s3_bucket" "s3" {
   }
 }
 
+resource "aws_s3_bucket" "tests3" {
+
+  bucket        = "${var.test_bucketName}"
+  acl           = "private"
+  force_destroy = true
+
+  lifecycle_rule {
+    enabled = true
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "aws:kms"
+      }
+    }
+  }
+  tags = {
+    Name        = "${var.test_bucketName}"
+    Environment = "dev"
+  }
+}
+
 
 resource "aws_dynamodb_table" "basic-dynamodb-table" {
   name           = "csye6225"
@@ -267,9 +294,18 @@ resource "aws_iam_policy_attachment" "circleci-attach3" {
   depends_on = [aws_iam_policy.policy3]
 }
 
-resource "aws_iam_policy" "policy4" {
-  name        = "CodeDeploy-EC2-S3"
-  description = "EC2 s3 access policy"
+resource "aws_iam_policy_attachment" "circleci-attach4" {
+  name       = "circleci-attachment-tests"
+  users      = ["${var.aws_circleci_user_name}"]
+  #roles      = ["${aws_iam_role.role.name}"]
+  #groups     = ["${aws_iam_group.group.name}"]
+  policy_arn = "${aws_iam_policy.app_policy.arn}"
+  depends_on = [aws_iam_policy.app_policy]
+}
+
+resource "aws_iam_policy" "app_policy" {
+  name        = "CodeDeploy-EC2-APP"
+  description = "EC2 APP access policy"
   policy      = <<EOF
 {
     "Version": "2012-10-17",
@@ -278,6 +314,13 @@ resource "aws_iam_policy" "policy4" {
             "Action": [
                 "s3:Get*",
                 "s3:List*"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        },
+        {
+            "Action": [
+                "cloudwath:*"
             ],
             "Effect": "Allow",
             "Resource": "*"
@@ -315,7 +358,7 @@ resource "aws_iam_instance_profile" "role1_profile" {
 
 resource "aws_iam_role_policy_attachment" "role1-attach" {
   role       = "${aws_iam_role.role1.name}"
-  policy_arn = "${aws_iam_policy.policy4.arn}"
+  policy_arn = "${aws_iam_policy.app_policy.arn}"
 }
 
 resource "aws_iam_role" "role2" {
@@ -442,6 +485,8 @@ resource "aws_instance" "web-1" {
                       export RDS_USER_NAME=thunderstorm
                       export RDS_PASSWORD=thunderstorm_123
                       export RDS_DB_NAME=thunderstorm
+                      export PORT=3000
+                      export S3_BUCKET_NAME=${var.bucketName}
                       echo bucket=${var.codedeployS3Bucket} >> .env
                       chmod 777 .env
   EOF
