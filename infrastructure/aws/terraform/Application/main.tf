@@ -320,10 +320,13 @@ resource "aws_iam_policy" "app_policy" {
         },
         {
             "Action": [
-                "cloudwath:*"
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "logs:DescribeLogStreams"
             ],
             "Effect": "Allow",
-            "Resource": "*"
+            "Resource": "arn:aws:logs:*:*:*"
         }
     ]
 }
@@ -383,6 +386,15 @@ resource "aws_iam_role" "role2" {
 }
 EOF
 }
+
+resource "aws_cloudwatch_log_group" "thunderstormlogs" {
+  name = "thunderstorm"
+
+  tags = {
+    Environment = "production"
+  }
+}
+
 
 resource "aws_iam_role_policy_attachment" "codedeploy_service" {
   role       = "${aws_iam_role.role2.name}"
@@ -480,6 +492,10 @@ resource "aws_instance" "web-1" {
                       sudo service codedeploy-agent status
                       sudo service codedeploy-agent start
                       sudo service codedeploy-agent status
+                      
+                      wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
+                      sudo rpm -U ./amazon-cloudwatch-agent.rpm
+                      
                       echo host=${aws_db_instance.rds.address} >> .env
                       export RDS_CONNECTION_STRING=${aws_db_instance.rds.address}
                       export RDS_USER_NAME=thunderstorm

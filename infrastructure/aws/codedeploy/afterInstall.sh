@@ -14,3 +14,4 @@
 
 cd /home/centos/node-app/assignment2
 sudo npm install
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/home/centos/node-app/assignment2/webapp/cloudwatch-agent-config.json -s
