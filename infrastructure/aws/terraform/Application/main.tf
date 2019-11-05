@@ -485,6 +485,7 @@ resource "aws_instance" "web-1" {
                       sudo yum update -y
                       sudo yum install ruby -y
                       sudo yum install wget -y
+                      sudo yum install psmisc -y
                       cd /home/centos
                       wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
                       chmod +x ./install
