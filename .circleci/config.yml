@@ -37,6 +37,8 @@ jobs:
             export RDS_DB_NAME=thunderstorm
             export S3_BUCKET_NAME=prodsajida-test.recipeonthego.me
             export PORT=3005
+            npm start &
+            sleep 10
             npm test && killall npm
             cd ../../
             pwd
