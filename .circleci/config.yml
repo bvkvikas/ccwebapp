@@ -41,7 +41,7 @@ jobs:
             sleep 10
             npm test
             killall npm
-            rm -rf node_modules*
+            rm -rf ./node_module*
             cd ../../
             pwd
 
