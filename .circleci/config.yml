@@ -38,8 +38,8 @@ jobs:
             export S3_BUCKET_NAME=prodsajida-test.recipeonthego.me
             export PORT=3005
             npm start &
-            npm test
-            killall npm
+            sleep 30
+            npm test && killall npm
             cd ../../
             pwd
 
