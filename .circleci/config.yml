@@ -9,10 +9,10 @@ jobs:
         environment:
           TEST_DATABASE_URL: postgresql://admin:admin@localhost/thunderstorm
       - image: circleci/postgres:9.6.5-alpine-ram
-          environment:
-            POSTGRES_USER: admin
-            POSTGRES_DB: thunderstorm
-            POSTGRES_PASSWORD: admin
+        environment:
+          POSTGRES_USER: admin
+          POSTGRES_DB: thunderstorm
+          POSTGRES_PASSWORD: admin
     steps:
       - checkout
 
