@@ -502,7 +502,7 @@ resource "aws_instance" "web-1" {
                       export RDS_USER_NAME=thunderstorm
                       export RDS_PASSWORD=thunderstorm_123
                       export RDS_DB_NAME=thunderstorm
-                      export PORT=3000
+                      export PORT=3005
                       export S3_BUCKET_NAME=${var.bucketName}
                       echo bucket=${var.codedeployS3Bucket} >> .env
                       chmod 777 .env
