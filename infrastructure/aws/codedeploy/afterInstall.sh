@@ -12,5 +12,5 @@
 # sudo rm -rf /opt/tomcat/logs/*.txt
 
 
-cd ccwebapp/webapp/assignment2
+cd /home/centos/node-app/assignment2
 sudo npm install

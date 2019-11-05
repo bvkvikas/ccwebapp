@@ -27,7 +27,12 @@ resource "aws_security_group" "application_security_group" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -143,7 +148,7 @@ resource "aws_iam_policy" "policy1" {
         "codedeploy:GetDeployment"
       ],
       "Resource": [
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentgroup:${var.codeDeployApplicationGroup}" 
+        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentgroup:${var.codeDeployApplicationName}/${var.codeDeployApplicationGroup}" 
       ]
     },
     {
@@ -433,6 +438,10 @@ resource "aws_instance" "web-1" {
                       sudo service codedeploy-agent start
                       sudo service codedeploy-agent status
                       echo host=${aws_db_instance.rds.address} >> .env
+                      export RDS_CONNECTION_STRING=${aws_db_instance.rds.address}
+                      export RDS_USER_NAME=thunderstorm
+                      export RDS_PASSWORD=thunderstorm_123
+                      export RDS_DB_NAME=thunderstorm
                       echo bucket=${var.codedeployS3Bucket} >> .env
                       chmod 777 .env
   EOF
