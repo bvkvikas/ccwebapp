@@ -1,5 +1,5 @@
 #!/bin/bash
 
 cd /home/centos/node-app/assignment2
-npm start | tee ./app.log
+npm start > ./app.log 2>&1
 pwd
