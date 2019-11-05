@@ -20,7 +20,7 @@ jobs:
           name: install dependencies
           command: |
             sudo apt-get update
-            sudo apt-get install wget zip unzip curl
+            sudo apt-get install wget zip unzip curl killall
             curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
             sudo apt install nodejs
             python3 -m venv venv
@@ -39,7 +39,8 @@ jobs:
             export PORT=3005
             npm start &
             sleep 10
-            npm test && killall npm
+            npm test
+            killall npm
             cd ../../
             pwd
 
