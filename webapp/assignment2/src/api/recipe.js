@@ -5,9 +5,10 @@ const format = require('pg-format');
 const AWS = require('aws-sdk');
 const api = require('./api');
 const logger = require('../../config/winston')
+const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 3005 });
 
 const {
-	S3_BUCKET_NAME
+    S3_BUCKET_NAME
 } = process.env;
 
 
@@ -16,6 +17,7 @@ var s3 = new AWS.S3();
 
 const createRecipe = (request, response) => {
     logger.info("create recipe call");
+    sdc.increment('Create recipe')
     const {
         cook_time_in_min,
         prep_time_in_min,
@@ -129,6 +131,7 @@ const createRecipe = (request, response) => {
 
 const deleteRecipe = (request, response) => {
     logger.info("delete recipe call");
+    sdc.increment('Delete book by id')
     let id = request.params.id;
 
     if (id != null) {
@@ -148,13 +151,13 @@ const deleteRecipe = (request, response) => {
                             if (user_id === result.rows[0].author_id) {
                                 if (result.rows[0] != null) {
                                     console.log("Result " + result.rows[0]);
-                                    database.query('select * from IMAGES where recipe_id = $1', [id], function(err, imgresult){
-                                        if (err){
+                                    database.query('select * from IMAGES where recipe_id = $1', [id], function (err, imgresult) {
+                                        if (err) {
                                             logger.error(err);
-                                            return response.status(404).json({info: 'sql error'})
-                                        } else{
+                                            return response.status(404).json({ info: 'sql error' })
+                                        } else {
                                             if (imgresult.rows.length > 0) {
-                                                imgresult.rows.forEach(function(img){
+                                                imgresult.rows.forEach(function (img) {
                                                     const params = {
                                                         Bucket: S3_BUCKET_NAME,
                                                         Key: "images/" + img.id
@@ -168,7 +171,7 @@ const deleteRecipe = (request, response) => {
                                                         }
                                                         console.log('File deleted successfully from S3 bucket.');
                                                         return response.status(204).end();
-                                                    });    
+                                                    });
 
                                                 });
 
@@ -221,6 +224,7 @@ const deleteRecipe = (request, response) => {
 }
 const updateRecipe = (request, response) => {
     logger.info("update recipe call");
+    sdc.increment('Update recipe')
     var id = request.params.id;
 
     const {
@@ -377,6 +381,7 @@ const updateRecipe = (request, response) => {
 
 const getRecipe = (request, response) => {
     logger.info("get recipe call");
+    sdc.increment('Get recipe')
     var id = request.params.id;
     if (id != null) {
         database.query(
@@ -440,6 +445,7 @@ const getRecipe = (request, response) => {
 
 const getNewRecipe = (request, response) => {
     logger.info("get new recipe call");
+    sdc.increment('Get newest recipe')
     database.query(
         'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
        ORDER BY created_ts DESC LIMIT 1',

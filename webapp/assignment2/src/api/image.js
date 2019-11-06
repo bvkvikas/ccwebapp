@@ -18,11 +18,11 @@ const ACCEPTABLE_FILE_FORMATS = ['image/jpeg', 'image/png', 'image/jpg'];
 const ACCEPTABLE_FILE_SIZE_BYTES = 5 * 100000; // 500 KBs
 
 
-function getMD5HashFromFile(file){
-    var hash = crypt.createHash("md5")
-        .update(file, 'utf-8')
-        .digest("hex");
-    return hash;
+function getMD5HashFromFile(file) {
+	var hash = crypt.createHash("md5")
+		.update(file, 'utf-8')
+		.digest("hex");
+	return hash;
 }
 
 // Create an S3 client
@@ -82,7 +82,7 @@ const uploadImage = (request, response) => {
 										Metadata: {
 											"name": image_file.name,
 											"content_length": image_file.size.toString(),
-											"filetype":image_file.type
+											"filetype": image_file.type
 										}
 									};
 									s3.upload(params, function (err, data) {

@@ -5,6 +5,7 @@ const validator = new Validator();
 const uuidv1 = require('uuid/v1');
 const database = db.connection;
 const logger = require('../../config/winston')
+const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 3005 });
 
 var authPromise = function (req) {
     return new Promise(function (resolve, reject) {
@@ -60,6 +61,7 @@ var authPromise = function (req) {
 
 const createUser = (request, response) => {
     logger.info("User Register Call");
+    sdc.increment('POST user');
     const {
         emailaddress,
         password,
@@ -109,6 +111,7 @@ const createUser = (request, response) => {
 
 const updateUser = (request, response) => {
     logger.info("User update Call");
+    sdc.increment('UPdate user');
     authPromise(request).then(
 
         function (user) {
@@ -193,6 +196,7 @@ const updateUser = (request, response) => {
 
 const getUser = (request, response) => {
     logger.info("User GET Call");
+    sdc.increment('GET User (time)');
     authPromise(request).then(
         function (user) {
             // console.log(user);
