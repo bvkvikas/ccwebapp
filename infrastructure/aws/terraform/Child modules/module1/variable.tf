@@ -127,7 +127,3 @@ variable "aws_circleci_user_name" {
   type = "string"
 }
 
-variable "test_bucketName" {
-  type    = "string"
-  default = "dev-test.thunderstorm.me"
-}
