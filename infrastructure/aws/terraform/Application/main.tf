@@ -27,7 +27,12 @@ resource "aws_security_group" "application_security_group" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-
+  }
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -98,6 +103,33 @@ resource "aws_s3_bucket" "s3" {
   }
 }
 
+resource "aws_s3_bucket" "tests3" {
+
+  bucket        = "${var.test_bucketName}"
+  acl           = "private"
+  force_destroy = true
+
+  lifecycle_rule {
+    enabled = true
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+  }
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "aws:kms"
+      }
+    }
+  }
+  tags = {
+    Name        = "${var.test_bucketName}"
+    Environment = "dev"
+  }
+}
+
 
 resource "aws_dynamodb_table" "basic-dynamodb-table" {
   name           = "csye6225"
@@ -143,7 +175,7 @@ resource "aws_iam_policy" "policy1" {
         "codedeploy:GetDeployment"
       ],
       "Resource": [
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentgroup:${var.codeDeployApplicationGroup}" 
+        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentgroup:${var.codeDeployApplicationName}/${var.codeDeployApplicationGroup}" 
       ]
     },
     {
@@ -262,9 +294,18 @@ resource "aws_iam_policy_attachment" "circleci-attach3" {
   depends_on = [aws_iam_policy.policy3]
 }
 
-resource "aws_iam_policy" "policy4" {
-  name        = "CodeDeploy-EC2-S3"
-  description = "EC2 s3 access policy"
+resource "aws_iam_policy_attachment" "circleci-attach4" {
+  name       = "circleci-attachment-tests"
+  users      = ["${var.aws_circleci_user_name}"]
+  #roles      = ["${aws_iam_role.role.name}"]
+  #groups     = ["${aws_iam_group.group.name}"]
+  policy_arn = "${aws_iam_policy.app_policy.arn}"
+  depends_on = [aws_iam_policy.app_policy]
+}
+
+resource "aws_iam_policy" "app_policy" {
+  name        = "CodeDeploy-EC2-APP"
+  description = "EC2 APP access policy"
   policy      = <<EOF
 {
     "Version": "2012-10-17",
@@ -276,6 +317,16 @@ resource "aws_iam_policy" "policy4" {
             ],
             "Effect": "Allow",
             "Resource": "*"
+        },
+        {
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "logs:DescribeLogStreams"
+            ],
+            "Effect": "Allow",
+            "Resource": "arn:aws:logs:*:*:*"
         }
     ]
 }
@@ -310,7 +361,7 @@ resource "aws_iam_instance_profile" "role1_profile" {
 
 resource "aws_iam_role_policy_attachment" "role1-attach" {
   role       = "${aws_iam_role.role1.name}"
-  policy_arn = "${aws_iam_policy.policy4.arn}"
+  policy_arn = "${aws_iam_policy.app_policy.arn}"
 }
 
 resource "aws_iam_role" "role2" {
@@ -335,6 +386,15 @@ resource "aws_iam_role" "role2" {
 }
 EOF
 }
+
+resource "aws_cloudwatch_log_group" "thunderstormlogs" {
+  name = "thunderstorm"
+
+  tags = {
+    Environment = "production"
+  }
+}
+
 
 resource "aws_iam_role_policy_attachment" "codedeploy_service" {
   role       = "${aws_iam_role.role2.name}"
@@ -422,10 +482,28 @@ resource "aws_instance" "web-1" {
                       echo BEGIN
                       date '+%Y-%m-%d %H:%M:%S'
                       echo END
+                      sudo yum update -y
+                      sudo yum install ruby -y
+                      sudo yum install wget -y
+                      sudo yum install psmisc -y
+                      cd /home/centos
+                      wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
+                      chmod +x ./install
+                      sudo ./install auto
                       sudo service codedeploy-agent status
                       sudo service codedeploy-agent start
                       sudo service codedeploy-agent status
+                      
+                      wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
+                      sudo rpm -U ./amazon-cloudwatch-agent.rpm
+                      
                       echo host=${aws_db_instance.rds.address} >> .env
+                      export RDS_CONNECTION_STRING=${aws_db_instance.rds.address}
+                      export RDS_USER_NAME=thunderstorm
+                      export RDS_PASSWORD=thunderstorm_123
+                      export RDS_DB_NAME=thunderstorm
+                      export PORT=3005
+                      export S3_BUCKET_NAME=${var.bucketName}
                       echo bucket=${var.codedeployS3Bucket} >> .env
                       chmod 777 .env
   EOF

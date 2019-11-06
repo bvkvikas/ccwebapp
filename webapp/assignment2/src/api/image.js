@@ -16,6 +16,14 @@ console.log(S3_BUCKET_NAME);
 const ACCEPTABLE_FILE_FORMATS = ['image/jpeg', 'image/png', 'image/jpg'];
 const ACCEPTABLE_FILE_SIZE_BYTES = 5 * 100000; // 500 KBs
 
+
+function getMD5HashFromFile(file){
+    var hash = crypt.createHash("md5")
+        .update(file, 'utf-8')
+        .digest("hex");
+    return hash;
+}
+
 // Create an S3 client
 var s3 = new AWS.S3();
 
@@ -68,7 +76,9 @@ const uploadImage = (request, response) => {
 										Key: "images/" + image_uuid,
 										Body: fileContent,
 										Metadata: {
-											"name": image_file.name
+											"name": image_file.name,
+											"content_length": image_file.size.toString(),
+											"filetype":image_file.type
 										}
 									};
 									s3.upload(params, function (err, data) {
@@ -79,11 +89,13 @@ const uploadImage = (request, response) => {
 											});
 										}
 										console.log(`File uploaded successfully. ${data.Location}`);
+										console.log(data);
 										database.query('INSERT INTO IMAGES \
-							        	(id, recipe_id, url) VALUES ($1, $2, $3) RETURNING id,url', [image_uuid, recipe_id, data.Location], function (err, insertResult) {
+							        	(id, recipe_id, url, content_length, last_modified) VALUES ($1, $2, $3, $4, $5) RETURNING id,url', [image_uuid, recipe_id, data.Location, image_file.size, new Date()], function (err, insertResult) {
 											if (err) {
+												console.log('error here');
 												return response.status(500).send({
-													error: 'Error storing the file to storage system'
+													error: 'Error storing the file metadata'
 												});
 											} else {
 												console.log("successfully uploaded the file.");
