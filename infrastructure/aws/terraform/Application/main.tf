@@ -179,7 +179,7 @@ resource "aws_iam_policy" "policy1" {
       ]
     },
     {
-      "Effect": "Allow",
+      "Effect": "Allow",  
       "Action": [
         "codedeploy:GetDeploymentConfig"
       ],
@@ -362,6 +362,14 @@ resource "aws_iam_instance_profile" "role1_profile" {
 resource "aws_iam_role_policy_attachment" "role1-attach" {
   role       = "${aws_iam_role.role1.name}"
   policy_arn = "${aws_iam_policy.app_policy.arn}"
+}
+
+resource "aws_cloudwatch_log_group" "thunderstormlogs" {
+  name = "thunderstorm"
+
+  tags = {
+    Environment = "dev"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "cloudwatch-attach" {
