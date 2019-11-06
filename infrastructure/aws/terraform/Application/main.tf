@@ -364,6 +364,11 @@ resource "aws_iam_role_policy_attachment" "role1-attach" {
   policy_arn = "${aws_iam_policy.app_policy.arn}"
 }
 
+resource "aws_iam_role_policy_attachment" "cloudwatch-attach" {
+  role       = "${aws_iam_role.role1.name}"
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
 resource "aws_iam_role" "role2" {
   name = "CodeDeployServiceRole"
   description = "Allows CodeDeploy to call AWS services such as Auto Scaling on your behalf"
@@ -385,14 +390,6 @@ resource "aws_iam_role" "role2" {
   ]
 }
 EOF
-}
-
-resource "aws_cloudwatch_log_group" "thunderstormlogs" {
-  name = "thunderstorm"
-
-  tags = {
-    Environment = "production"
-  }
 }
 
 
