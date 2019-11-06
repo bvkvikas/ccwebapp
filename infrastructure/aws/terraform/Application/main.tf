@@ -179,7 +179,7 @@ resource "aws_iam_policy" "policy1" {
       ]
     },
     {
-      "Effect": "Allow",
+      "Effect": "Allow",  
       "Action": [
         "codedeploy:GetDeploymentConfig"
       ],
@@ -364,6 +364,19 @@ resource "aws_iam_role_policy_attachment" "role1-attach" {
   policy_arn = "${aws_iam_policy.app_policy.arn}"
 }
 
+resource "aws_cloudwatch_log_group" "thunderstormlogs" {
+  name = "thunderstorm"
+
+  tags = {
+    Environment = "dev"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch-attach" {
+  role       = "${aws_iam_role.role1.name}"
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
 resource "aws_iam_role" "role2" {
   name        = "CodeDeployServiceRole"
   description = "Allows CodeDeploy to call AWS services such as Auto Scaling on your behalf"
@@ -385,14 +398,6 @@ resource "aws_iam_role" "role2" {
   ]
 }
 EOF
-}
-
-resource "aws_cloudwatch_log_group" "thunderstormlogs" {
-  name = "thunderstorm"
-
-  tags = {
-    Environment = "production"
-  }
 }
 
 
@@ -493,15 +498,17 @@ resource "aws_instance" "web-1" {
                       sudo service codedeploy-agent status
                       wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
                       sudo rpm -U ./amazon-cloudwatch-agent.rpm
-                      echo host=${aws_db_instance.rds.address} >> .env
-                      echo RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> .env
-                      echo RDS_USER_NAME=thunderstorm >> .env
-                      echo RDS_PASSWORD=thunderstorm_123 >> .env
-                      echo RDS_DB_NAME=thunderstorm >> .env
-                      echo PORT=3005 >> .env
-                      echo S3_BUCKET_NAME=${var.bucketName} >> .env
-                      echo bucket=${var.codedeployS3Bucket} >> .env
-                      chmod 777 .env
+                      sudo touch /home/centos/environment.sh
+                      chmod 777 /home/centos/environment.sh
+                      echo export host=${aws_db_instance.rds.address} >> /home/centos/environment.sh
+                      echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> /home/centos/environment.sh
+                      echo export RDS_USER_NAME=thunderstorm >> /home/centos/environment.sh
+                      echo export RDS_PASSWORD=thunderstorm_123 >> /home/centos/environment.sh
+                      echo export RDS_DB_NAME=thunderstorm >> /home/centos/environment.sh
+                      echo export PORT=3005 >> /home/centos/environment.sh
+                      echo export S3_BUCKET_NAME=${var.bucketName} >> /home/centos/environment.sh
+                      echo export bucket=${var.codedeployS3Bucket} >> /home/centos/environment.sh
+                      
   EOF
   ebs_block_device {
     device_name           = "/dev/sda1"

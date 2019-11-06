@@ -1,5 +1,7 @@
 #!/bin/bash
 
 cd /home/centos/node-app/assignment2
-nohup node app.js >> app.log 2>&1 &
-pwd
+sudo cp ./RecipeOnTheGo.service /etc/systemd/system/RecipeOnTheGo.service
+sudo systemctl start RecipeOnTheGo
+sudo systemctl status RecipeOnTheGo
+echo "Started the service"

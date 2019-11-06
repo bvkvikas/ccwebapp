@@ -39,7 +39,8 @@ variable "bucketName" {
 }
 
 variable "test_bucketName" {
-  type = "string"
+  type    = "string"
+  default = "dev.thunderstorm12.me"
 }
 
 variable "ec2instanceName" {

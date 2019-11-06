@@ -86,6 +86,10 @@ variable "bucketName" {
   default = "dev.thunderstorm.me"
 }
 
+variable "test_bucketName" {
+  type    = "string"
+  default = "devtest.thunderstorm.me"
+}
 
 variable "ec2instanceName" {
   type    = "string"
@@ -123,6 +127,3 @@ variable "aws_circleci_user_name" {
   type = "string"
 }
 
-variable "test_bucketName" {
-  type = "string"
-}

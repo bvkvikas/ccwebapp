@@ -1,4 +1,2 @@
 #!/bin/bash
-pwd
-cd /home/centos/
-killall npm
+sudo systemctl stop RecipeOnTheGo
