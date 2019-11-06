@@ -1,4 +1,4 @@
-# #!/bin/bash
+#!/bin/bash
 
 # sudo systemctl stop tomcat.service
 
@@ -12,5 +12,6 @@
 # sudo rm -rf /opt/tomcat/logs/*.txt
 
 
-cd ccwebapp/webapp/assignment2
-sudo npm install
+cd /home/centos/node-app/assignment2
+npm install > ./npm-install.log 2>&1
+sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c file:/home/centos/node-app/assignment2/cloudwatch-agent-config.json -s

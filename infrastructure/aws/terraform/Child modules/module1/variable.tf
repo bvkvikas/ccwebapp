@@ -113,3 +113,12 @@ variable "codeDeployApplicationName" {
   type    = "string"
   default = "blah"
 }
+
+variable "codeDeployApplicationGroup" {
+  type    = "string"
+  default = "blah"
+}
+
+variable "aws_circleci_user_name" {
+  type = "string"
+}

@@ -38,6 +38,10 @@ variable "bucketName" {
   default = "dev.thunderstorm.me"
 }
 
+variable "test_bucketName" {
+  type    = "string"
+  default = "dev-test.thunderstorm.me"
+}
 
 variable "ec2instanceName" {
   type    = "string"
@@ -66,6 +70,12 @@ variable "codeDeployApplicationName" {
   default = "blah"
 }
 
+variable "codeDeployApplicationGroup" {
+  type    = "string"
+  default = "blah"
+}
+
+
 variable "ami_id" {
   type    = "string"
   default = ""
@@ -73,4 +83,8 @@ variable "ami_id" {
 variable "key_name" {
   type    = "string"
   default = ""
+}
+
+variable "aws_circleci_user_name" {
+  type = "string"
 }
