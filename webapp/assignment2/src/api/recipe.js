@@ -5,7 +5,7 @@ const format = require('pg-format');
 const AWS = require('aws-sdk');
 const api = require('./api');
 const logger = require('../../config/winston')
-const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 3005 });
+const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 8125 });
 
 const {
     S3_BUCKET_NAME

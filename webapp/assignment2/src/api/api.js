@@ -5,7 +5,7 @@ const validator = new Validator();
 const uuidv1 = require('uuid/v1');
 const database = db.connection;
 const logger = require('../../config/winston')
-const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 3005 });
+const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 8125 });
 
 var authPromise = function (req) {
     return new Promise(function (resolve, reject) {
