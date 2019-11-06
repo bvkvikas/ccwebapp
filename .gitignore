@@ -7,3 +7,4 @@ ccwebapp/README.md
 *.tfvars
 *.log
 *.nohup.out
+*..terraform.tfstate.lock.info
