@@ -497,15 +497,15 @@ resource "aws_instance" "web-1" {
                       wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
                       sudo rpm -U ./amazon-cloudwatch-agent.rpm
                       
-                      echo host=${aws_db_instance.rds.address} >> /etc/profile
-                      echo RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> /etc/profile
-                      echo RDS_USER_NAME=thunderstorm >> /etc/profile
-                      echo RDS_PASSWORD=thunderstorm_123 >> /etc/profile
-                      echo RDS_DB_NAME=thunderstorm >> /etc/profile
-                      echo PORT=3005 >> /etc/profile
-                      echo S3_BUCKET_NAME=${var.bucketName} >> /etc/profile
-                      echo bucket=${var.codedeployS3Bucket} >> /etc/profile
-                      chmod 777 .env
+                      echo export host=${aws_db_instance.rds.address} >> /tmp/profile.sh
+                      echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> /tmp/profile.sh
+                      echo export RDS_USER_NAME=thunderstorm >> /tmp/profile.sh
+                      echo export RDS_PASSWORD=thunderstorm_123 >> /tmp/profile.sh
+                      echo export RDS_DB_NAME=thunderstorm >> /tmp/profile.sh
+                      echo export PORT=3005 >> /tmp/profile.sh
+                      echo export S3_BUCKET_NAME=${var.bucketName} >> /tmp/profile.sh
+                      echo export bucket=${var.codedeployS3Bucket} >> /tmp/profile.sh
+                      chmod 777 /tmp/profile.sh
   EOF
   ebs_block_device {
     device_name           = "/dev/sda1"
