@@ -4,6 +4,7 @@ const db = require('../db');
 const validator = new Validator();
 const uuidv1 = require('uuid/v1');
 const database = db.connection;
+const logger = require('../../config/winston')
 
 var authPromise = function (req) {
     return new Promise(function (resolve, reject) {
@@ -58,6 +59,7 @@ var authPromise = function (req) {
 
 
 const createUser = (request, response) => {
+    logger.info("User Register Call");
     const {
         emailaddress,
         password,
@@ -74,7 +76,7 @@ const createUser = (request, response) => {
                   VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, emailaddress,firstname, lastname, account_created, account_updated', [uuidv1(), emailaddress, hash, firstname, lastname, new Date(), new Date()],
                         function (err, result) {
                             if (err) {
-
+                                logger.error(err);
                                 return response.status(400).json({
                                     info: 'username already exists'
                                 });
@@ -106,6 +108,7 @@ const createUser = (request, response) => {
 }
 
 const updateUser = (request, response) => {
+    logger.info("User update Call");
     authPromise(request).then(
 
         function (user) {
@@ -144,6 +147,7 @@ const updateUser = (request, response) => {
                             [update_firstname, update_lastname, hash, new Date(), updateEmail],
                             function (err, result) {
                                 if (err) {
+                                    logger.error(err);
                                     return response.status(500).send({
                                         error: 'Error updating user account'
                                     });
@@ -188,6 +192,7 @@ const updateUser = (request, response) => {
 }
 
 const getUser = (request, response) => {
+    logger.info("User GET Call");
     authPromise(request).then(
         function (user) {
             // console.log(user);
@@ -207,6 +212,7 @@ const getUser = (request, response) => {
                 });
         },
         function (err) {
+            logger.error(err);
             response.status(401).send(err);
         }
     );

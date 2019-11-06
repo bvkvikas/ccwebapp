@@ -3,7 +3,7 @@ jobs:
   build:
     branches:
         only:
-          - Assignment7_SM
+          - Assignment7_PJ
     docker:
       - image: circleci/python:3.6-jessie
         environment:
@@ -35,7 +35,7 @@ jobs:
             export RDS_PASSWORD=admin
             export RDS_CONNECTION_STRING=localhost
             export RDS_DB_NAME=thunderstorm
-            export S3_BUCKET_NAME=prodsajida-test.recipeonthego.me
+            export S3_BUCKET_NAME=dev.prajesh-thunderstorm12.me
             export PORT=3005
             npm start &
             sleep 10

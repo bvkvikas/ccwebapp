@@ -493,10 +493,8 @@ resource "aws_instance" "web-1" {
                       sudo service codedeploy-agent status
                       sudo service codedeploy-agent start
                       sudo service codedeploy-agent status
-                      
                       wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
                       sudo rpm -U ./amazon-cloudwatch-agent.rpm
-                      
                       echo host=${aws_db_instance.rds.address} >> .env
                       export RDS_CONNECTION_STRING=${aws_db_instance.rds.address}
                       export RDS_USER_NAME=thunderstorm

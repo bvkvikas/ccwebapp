@@ -7,6 +7,7 @@ const AWS = require('aws-sdk');
 const formidable = require('formidable');
 const fs = require('fs');
 const dotenv = require('dotenv');
+const logger = require('../../config/winston')
 
 dotenv.config();
 const {
@@ -28,6 +29,7 @@ function getMD5HashFromFile(file){
 var s3 = new AWS.S3();
 
 const uploadImage = (request, response) => {
+	logger.info("Image Upload");
 	var recipe_id = request.params.recipeId;
 
 	api.authPromise(request).then(
@@ -38,6 +40,7 @@ const uploadImage = (request, response) => {
         	where recipe_id = $1', [recipe_id],
 				function (err, recipeResult) {
 					if (err) {
+						logger.error(err);
 						return response.status(500).send({
 							error: 'Error getting recipe'
 						});
@@ -51,6 +54,7 @@ const uploadImage = (request, response) => {
 							} else {
 								new formidable.IncomingForm().parse(request, (err, fields, files) => {
 									if (err) {
+										logger.error(err);
 										return response.status(500).send({
 											error: 'Error parsing the uploads'
 										});
@@ -83,6 +87,7 @@ const uploadImage = (request, response) => {
 									};
 									s3.upload(params, function (err, data) {
 										if (err) {
+											logger.error(err);
 											console.log(err);
 											return response.status(500).send({
 												error: 'Error storing the file to storage system'
@@ -93,6 +98,7 @@ const uploadImage = (request, response) => {
 										database.query('INSERT INTO IMAGES \
 							        	(id, recipe_id, url, content_length, last_modified) VALUES ($1, $2, $3, $4, $5) RETURNING id,url', [image_uuid, recipe_id, data.Location, image_file.size, new Date()], function (err, insertResult) {
 											if (err) {
+												logger.error(err);
 												console.log('error here');
 												return response.status(500).send({
 													error: 'Error storing the file metadata'
@@ -114,12 +120,14 @@ const uploadImage = (request, response) => {
 				});
 		},
 		function (err) {
+			logger.error(err);
 			response.status(401).send(err);
 		}
 	);
 }
 
 const getImage = (request, response) => {
+	logger.info("Get Image");
 	var recipe_id = request.params.recipeId;
 	var image_id = request.params.imageId;
 	if (recipe_id != null && image_id != null) {
@@ -128,6 +136,7 @@ const getImage = (request, response) => {
 			where recipe_id = $1 and id =$2', [recipe_id, image_id],
 			function (err, imageResult) {
 				if (err) {
+					logger.error(err);
 					return response.status(500).send({
 						error: 'Error getting recipe'
 					});
@@ -147,6 +156,7 @@ const getImage = (request, response) => {
 
 
 const deleteImage = (request, response) => {
+	logger.info("Delete Image");
 	var recipe_id = request.params.recipeId;
 	var image_id = request.params.imageId;
 	api.authPromise(request).then(
@@ -157,6 +167,7 @@ const deleteImage = (request, response) => {
         	where recipe_id = $1', [recipe_id],
 				function (err, recipeResult) {
 					if (err) {
+						logger.error(err);
 						return response.status(500).send({
 							error: 'Error getting recipe'
 						});
@@ -174,6 +185,7 @@ const deleteImage = (request, response) => {
 								};
 								database.query('DELETE FROM IMAGES WHERE id = $1 ', [image_id], function (err, result) {
 									if (err) {
+										logger.error(err);
 										return response.status(500).send({
 											error: 'Error deleting the file from DB'
 										});
@@ -200,6 +212,7 @@ const deleteImage = (request, response) => {
 				});
 		},
 		function (err) {
+			logger.error(err);
 			response.status(401).send(err);
 		}
 	);
