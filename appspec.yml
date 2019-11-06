@@ -21,12 +21,12 @@ permissions:
 hooks:
   ApplcationStop:
     - location: ./applicationStop.sh
-      timeout: 180
+      timeout: 240
 
   AfterInstall:
     - location: ./afterInstall.sh
-      timeout: 180
+      timeout: 240
 
   ApplicationStart:
     - location: ./applicationStart.sh
-      timeout: 180
+      timeout: 240
