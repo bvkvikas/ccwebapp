@@ -21,6 +21,7 @@ module "my_ec2" {
   codedeployS3Bucket        = "${var.codedeployS3Bucket}"
   dbSubnetGroupName         = "${var.dbSubnetGroupName}"
   bucketName                = "${var.bucketName}"
+  test_bucketName           = "${var.test_bucketName}"
   dynamodbName              = "${var.dynamodbName}"
   key_name                  = "${var.key_name}"
   accountId                 = "${var.accountId}"

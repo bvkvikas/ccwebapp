@@ -495,15 +495,16 @@ resource "aws_instance" "web-1" {
                       sudo service codedeploy-agent status
                       wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
                       sudo rpm -U ./amazon-cloudwatch-agent.rpm
-                      echo host=${aws_db_instance.rds.address} >> .env
-                      export RDS_CONNECTION_STRING=${aws_db_instance.rds.address}
-                      export RDS_USER_NAME=thunderstorm
-                      export RDS_PASSWORD=thunderstorm_123
-                      export RDS_DB_NAME=thunderstorm
-                      export PORT=3005
-                      export S3_BUCKET_NAME=${var.bucketName}
-                      echo bucket=${var.codedeployS3Bucket} >> .env
-                      chmod 777 .env
+                      
+                      echo export host=${aws_db_instance.rds.address} >> /home/centos/environment.sh
+                      echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> /home/centos/environment.sh
+                      echo export RDS_USER_NAME=thunderstorm >> /home/centos/environment.sh
+                      echo export RDS_PASSWORD=thunderstorm_123 >> /home/centos/environment.sh
+                      echo export RDS_DB_NAME=thunderstorm >> /home/centos/environment.sh
+                      echo export PORT=3005 >> /home/centos/environment.sh
+                      echo export S3_BUCKET_NAME=${var.bucketName} >> /home/centos/environment.sh
+                      echo export bucket=${var.codedeployS3Bucket} >> /home/centos/environment.sh
+                      chmod 777 /home/centos/environment.sh
   EOF
   ebs_block_device {
     device_name           = "/dev/sda1"
