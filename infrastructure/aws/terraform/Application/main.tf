@@ -497,14 +497,14 @@ resource "aws_instance" "web-1" {
                       wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
                       sudo rpm -U ./amazon-cloudwatch-agent.rpm
                       
-                      echo host=${aws_db_instance.rds.address} >> .env
-                      export RDS_CONNECTION_STRING=${aws_db_instance.rds.address}
-                      export RDS_USER_NAME=thunderstorm
-                      export RDS_PASSWORD=thunderstorm_123
-                      export RDS_DB_NAME=thunderstorm
-                      export PORT=3005
-                      export S3_BUCKET_NAME=${var.bucketName}
-                      echo bucket=${var.codedeployS3Bucket} >> .env
+                      sudo echo host=${aws_db_instance.rds.address} >> .env
+                      sudo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address}
+                      sudo export RDS_USER_NAME=thunderstorm
+                      sudo export RDS_PASSWORD=thunderstorm_123
+                      sudo export RDS_DB_NAME=thunderstorm
+                      sudo export PORT=3005
+                      sudo export S3_BUCKET_NAME=${var.bucketName}
+                      sudo echo bucket=${var.codedeployS3Bucket} >> .env
                       chmod 777 .env
   EOF
   ebs_block_device {
