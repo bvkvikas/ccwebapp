@@ -97,10 +97,6 @@ resource "aws_s3_bucket" "s3" {
       }
     }
   }
-  tags = {
-    Name        = "${var.bucketName}"
-    Environment = "dev"
-  }
 }
 
 resource "aws_s3_bucket" "tests3" {
@@ -123,10 +119,6 @@ resource "aws_s3_bucket" "tests3" {
         sse_algorithm = "aws:kms"
       }
     }
-  }
-  tags = {
-    Name        = "${var.test_bucketName}"
-    Environment = "dev"
   }
 }
 
@@ -487,10 +479,6 @@ resource "aws_instance" "web-1" {
                       echo BEGIN
                       date '+%Y-%m-%d %H:%M:%S'
                       echo END
-                      sudo yum update -y
-                      sudo yum install ruby -y
-                      sudo yum install wget -y
-                      sudo yum install psmisc -y
                       cd /home/centos
                       sudo touch environment.sh
                       chmod 777 environment.sh
@@ -502,6 +490,8 @@ resource "aws_instance" "web-1" {
                       echo export PORT=3005 >> environment.sh
                       echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
                       echo export bucket=${var.codedeployS3Bucket} >> environment.sh
+                     
+                      
   EOF
   ebs_block_device {
     device_name           = "/dev/sda1"
