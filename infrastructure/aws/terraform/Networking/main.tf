@@ -16,9 +16,9 @@ resource "aws_subnet" "subnet1" {
   vpc_id            = "${aws_vpc.vpc.id}"
   cidr_block        = "${var.subnet_cidr_block_1}"
   availability_zone = "${data.aws_availability_zones.available.names[0]}"
-  
+
   #it will asssign public IP
-  
+
   map_public_ip_on_launch = true
   tags = {
     vpcname = "${var.subnet1}"
@@ -26,9 +26,9 @@ resource "aws_subnet" "subnet1" {
 }
 
 resource "aws_subnet" "subnet2" {
-  vpc_id            = "${aws_vpc.vpc.id}"
-  cidr_block        = "${var.subnet_cidr_block_2}"
-  availability_zone = "${data.aws_availability_zones.available.names[1]}"
+  vpc_id                  = "${aws_vpc.vpc.id}"
+  cidr_block              = "${var.subnet_cidr_block_2}"
+  availability_zone       = "${data.aws_availability_zones.available.names[1]}"
   map_public_ip_on_launch = true
   tags = {
     vpcname = "${var.subnet2}"
@@ -36,9 +36,9 @@ resource "aws_subnet" "subnet2" {
 }
 
 resource "aws_subnet" "subnet3" {
-  vpc_id            = "${aws_vpc.vpc.id}"
-  cidr_block        = "${var.subnet_cidr_block_3}"
-  availability_zone = "${data.aws_availability_zones.available.names[2]}"
+  vpc_id                  = "${aws_vpc.vpc.id}"
+  cidr_block              = "${var.subnet_cidr_block_3}"
+  availability_zone       = "${data.aws_availability_zones.available.names[2]}"
   map_public_ip_on_launch = true
   tags = {
     vpcname = "${var.subnet3}"
@@ -79,4 +79,3 @@ resource "aws_route" "route" {
   destination_cidr_block = "${var.destination_cidr_block}"
   gateway_id             = "${aws_internet_gateway.gw.id}"
 }
-

@@ -23,18 +23,8 @@ variable "subnet_ids" {
   default = ["test-subnet2", "test-subnet3"]
 }
 
-variable "key_name" {
-  type    = "string"
-  default = ""
-}
 
 
-#Application Stack reference Variable
-
-variable "ami_id" {
-  type    = "string"
-  default = ""
-}
 
 
 variable "dbSubnetGroupName" {
@@ -48,6 +38,10 @@ variable "bucketName" {
   default = "dev.thunderstorm.me"
 }
 
+variable "test_bucketName" {
+  type    = "string"
+  default = "dev.thunderstorm12.me"
+}
 
 variable "ec2instanceName" {
   type    = "string"
@@ -58,4 +52,39 @@ variable "ec2instanceName" {
 variable "dynamodbName" {
   type    = "string"
   default = "test-table"
+}
+
+
+
+variable "codedeployS3Bucket" {
+  type    = "string"
+  default = "blah"
+}
+variable "accountId" {
+  type    = "string"
+  default = "blah"
+}
+
+variable "codeDeployApplicationName" {
+  type    = "string"
+  default = "blah"
+}
+
+variable "codeDeployApplicationGroup" {
+  type    = "string"
+  default = "blah"
+}
+
+
+variable "ami_id" {
+  type    = "string"
+  default = ""
+}
+variable "key_name" {
+  type    = "string"
+  default = ""
+}
+
+variable "aws_circleci_user_name" {
+  type = "string"
 }
