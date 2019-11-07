@@ -492,14 +492,6 @@ resource "aws_instance" "web-1" {
                       sudo yum install wget -y
                       sudo yum install psmisc -y
                       cd /home/centos
-                      wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
-                      chmod +x ./install
-                      sudo ./install auto
-                      sudo service codedeploy-agent status
-                      sudo service codedeploy-agent start
-                      sudo service codedeploy-agent status
-                      wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
-                      sudo rpm -U ./amazon-cloudwatch-agent.rpm
                       sudo touch environment.sh
                       chmod 777 environment.sh
                       echo export host=${aws_db_instance.rds.address} >> environment.sh
@@ -510,6 +502,15 @@ resource "aws_instance" "web-1" {
                       echo export PORT=3005 >> environment.sh
                       echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
                       echo export bucket=${var.codedeployS3Bucket} >> environment.sh
+                      wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
+                      chmod +x ./install
+                      sudo ./install auto
+                      sudo service codedeploy-agent status
+                      sudo service codedeploy-agent start
+                      sudo service codedeploy-agent status
+                      wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
+                      sudo rpm -U ./amazon-cloudwatch-agent.rpm
+                     
                       
   EOF
   ebs_block_device {
