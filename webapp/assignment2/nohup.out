@@ -1,0 +1,11 @@
+Creating the tables..
+prod.thunderstorm.me
+App running on PORT 3005.
+Could not connect to Postgres { Error: getaddrinfo ENOTFOUND csye6225-fall2019.cvyvaqg43g4t.us-east-1.rds.amazonaws.com csye6225-fall2019.cvyvaqg43g4t.us-east-1.rds.amazonaws.com:5432
+    at GetAddrInfoReqWrap.onlookup [as oncomplete] (dns.js:56:26)
+  errno: 'ENOTFOUND',
+  code: 'ENOTFOUND',
+  syscall: 'getaddrinfo',
+  hostname: 'csye6225-fall2019.cvyvaqg43g4t.us-east-1.rds.amazonaws.com',
+  host: 'csye6225-fall2019.cvyvaqg43g4t.us-east-1.rds.amazonaws.com',
+  port: 5432 }
