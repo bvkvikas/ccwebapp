@@ -500,16 +500,16 @@ resource "aws_instance" "web-1" {
                       sudo service codedeploy-agent status
                       wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
                       sudo rpm -U ./amazon-cloudwatch-agent.rpm
-                      sudo touch /home/centos/environment.sh
-                      chmod 777 /home/centos/environment.sh
-                      echo export host=${aws_db_instance.rds.address} >> /home/centos/environment.sh
-                      echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> /home/centos/environment.sh
-                      echo export RDS_USER_NAME=thunderstorm >> /home/centos/environment.sh
-                      echo export RDS_PASSWORD=thunderstorm_123 >> /home/centos/environment.sh
-                      echo export RDS_DB_NAME=thunderstorm >> /home/centos/environment.sh
-                      echo export PORT=3005 >> /home/centos/environment.sh
-                      echo export S3_BUCKET_NAME=${var.bucketName} >> /home/centos/environment.sh
-                      echo export bucket=${var.codedeployS3Bucket} >> /home/centos/environment.sh
+                      sudo touch environment.sh
+                      chmod 777 environment.sh
+                      echo export host=${aws_db_instance.rds.address} >> environment.sh
+                      echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> environment.sh
+                      echo export RDS_USER_NAME=thunderstorm >> environment.sh
+                      echo export RDS_PASSWORD=thunderstorm_123 >> environment.sh
+                      echo export RDS_DB_NAME=thunderstorm >> environment.sh
+                      echo export PORT=3005 >> environment.sh
+                      echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
+                      echo export bucket=${var.codedeployS3Bucket} >> environment.sh
                       
   EOF
   ebs_block_device {
