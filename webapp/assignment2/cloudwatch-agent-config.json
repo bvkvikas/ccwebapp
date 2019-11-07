@@ -6,11 +6,13 @@
     "logs": {
         "logs_collected": {
             "files": {
-                "collect_list": [{
-                    "file_path": "/home/centos/node-app/assignment2/app.log",
-                    "log_group_name": "thunderstorm",
-                    "log_stream_name": "webapp"
-                }]
+                "collect_list": [
+                    {
+                        "file_path": "/home/centos/node-app/assignment2/logs/app.log",
+                        "log_group_name": "thunderstorm",
+                        "log_stream_name": "webapp"
+                    }
+                ]
             }
         }
     },
