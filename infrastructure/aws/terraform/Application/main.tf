@@ -97,10 +97,6 @@ resource "aws_s3_bucket" "s3" {
       }
     }
   }
-  tags = {
-    Name        = "${var.bucketName}"
-    Environment = "dev"
-  }
 }
 
 resource "aws_s3_bucket" "tests3" {
@@ -123,10 +119,6 @@ resource "aws_s3_bucket" "tests3" {
         sse_algorithm = "aws:kms"
       }
     }
-  }
-  tags = {
-    Name        = "${var.test_bucketName}"
-    Environment = "dev"
   }
 }
 
@@ -313,7 +305,10 @@ resource "aws_iam_policy" "app_policy" {
         {
             "Action": [
                 "s3:Get*",
-                "s3:List*"
+                "s3:List*",
+                "s3:Put*",
+                "s3:Delete*"
+
             ],
             "Effect": "Allow",
             "Resource": "*"
@@ -487,10 +482,6 @@ resource "aws_instance" "web-1" {
                       echo BEGIN
                       date '+%Y-%m-%d %H:%M:%S'
                       echo END
-                      sudo yum update -y
-                      sudo yum install ruby -y
-                      sudo yum install wget -y
-                      sudo yum install psmisc -y
                       cd /home/centos
                       sudo touch environment.sh
                       chmod 777 environment.sh
@@ -502,14 +493,6 @@ resource "aws_instance" "web-1" {
                       echo export PORT=3005 >> environment.sh
                       echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
                       echo export bucket=${var.codedeployS3Bucket} >> environment.sh
-                      wget https://aws-codedeploy-us-east-1.s3.us-east-1.amazonaws.com/latest/install
-                      chmod +x ./install
-                      sudo ./install auto
-                      sudo service codedeploy-agent status
-                      sudo service codedeploy-agent start
-                      sudo service codedeploy-agent status
-                      wget https://s3.amazonaws.com/amazoncloudwatch-agent/centos/amd64/latest/amazon-cloudwatch-agent.rpm
-                      sudo rpm -U ./amazon-cloudwatch-agent.rpm
                      
                       
   EOF
