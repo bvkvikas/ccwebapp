@@ -473,7 +473,7 @@ resource "aws_instance" "web-1" {
   ami           = "${var.ami_id}"
   instance_type = "t2.micro"
   key_name      = "${var.key_name}"
-  user_data     = <<EOF
+  user_data     = <<-EOF
                       #!/bin/bash -ex
                       exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
                       echo BEGIN
