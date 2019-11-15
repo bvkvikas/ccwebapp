@@ -8,7 +8,7 @@ let recipe_id = "";
 describe("Create user", () => {
     it('it should create the user when all details are passed', (done) => {
         chai.request(server)
-            .post('/v1/user')
+            .post('/v2/user')
             .send({
                 "emailaddress": "thunderstorm@gmail.com",
                 "password": "Test@1234",
@@ -25,7 +25,7 @@ describe("Create user", () => {
 
     it('Should throw error when user already exists', (done) => {
         chai.request(server)
-            .post('/v1/user')
+            .post('/v2/user')
             .send({
                 "firstname": "TestingAccount1",
                 "lastname": "TestingAccount2",
@@ -42,7 +42,7 @@ describe("Create user", () => {
 
     it('Should throw error when password is not strong enough', (done) => {
         chai.request(server)
-            .post('/v1/user')
+            .post('/v2/user')
             .send({
                 "firstname": "TestingAccount1",
                 "lastname": "TestingAccount2",
@@ -59,7 +59,7 @@ describe("Create user", () => {
 
     it('Should throw error when email is invalid', (done) => {
         chai.request(server)
-            .post('/v1/user')
+            .post('/v2/user')
             .send({
                 "firstname": "TestingAccount1",
                 "lastname": "TestingAccount2",
@@ -76,7 +76,7 @@ describe("Create user", () => {
 
     it('Should throw error when all the details are not given', (done) => {
         chai.request(server)
-            .post('/v1/user')
+            .post('/v2/user')
             .send({
                 "firstname": "TestingAccount1",
                 "password": "Testing@1234",

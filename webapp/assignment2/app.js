@@ -24,7 +24,7 @@ app.post('/v2/user', api.createUser);
 app.put('/v1/user/self', api.updateUser);
 app.get('/v1/user/self', api.getUser);
 
-app.post('/v2/recipe/', recipe.createRecipe);
+app.post('/v1/recipe/', recipe.createRecipe);
 app.delete('/v1/recipe/:id', recipe.deleteRecipe);
 app.delete('/v1/recipe/', recipe.deleteRecipe);
 
