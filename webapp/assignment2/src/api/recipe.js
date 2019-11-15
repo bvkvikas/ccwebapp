@@ -3,17 +3,26 @@ const uuidv4 = require('uuid/v4');
 const database = db.connection;
 const format = require('pg-format');
 const AWS = require('aws-sdk');
+AWS.config.update({
+    region: 'us-east-1'
+});
 const api = require('./api');
 const logger = require('../../config/winston')
-const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 8125 });
+const SDC = require('statsd-client'),
+    sdc = new SDC({
+        host: 'localhost',
+        port: 8125
+    });
 
 const {
-    S3_BUCKET_NAME
+    S3_BUCKET_NAME,
+    DOMAIN_NAME
 } = process.env;
 
 
 // Create an S3 client
 var s3 = new AWS.S3();
+var sns = new AWS.SNS();
 
 const createRecipe = (request, response) => {
     logger.info("create recipe call");
@@ -154,7 +163,9 @@ const deleteRecipe = (request, response) => {
                                     database.query('select * from IMAGES where recipe_id = $1', [id], function (err, imgresult) {
                                         if (err) {
                                             logger.error(err);
-                                            return response.status(404).json({ info: 'sql error' })
+                                            return response.status(404).json({
+                                                info: 'sql error'
+                                            })
                                         } else {
                                             if (imgresult.rows.length > 0) {
                                                 imgresult.rows.forEach(function (img) {
@@ -501,11 +512,88 @@ const getNewRecipe = (request, response) => {
 
 }
 
+const myrecipes = (request, response) => {
+    logger.info('get myRecipes call');
+    sdc.increment('Get my recipes');
+    api.authPromise(request).then(
+        function (user) {
+            const user_id = user.id;
+            database.query("BEGIN", function (err, result) {
+                database.query("SELECT recipe_id FROM RECIPE WHERE author_id = $1", [user_id], function (err, recipeResult) {
+                    if (err) {
+                        logger.error(err);
+                        console.log(err);
+                        database.query('ROLLBACK', function (err, result) {
+                            return response.status(500).json({
+                                info: 'Couldn\'t read from db'
+                            });
+                        });
+                    } else {
+                        if (recipeResult.rows.length > 0) {
+                            let topicParams = {
+                                Name: 'user-recipes-topic'
+                            };
+                            sns.createTopic(topicParams, (err, data) => {
+                                if (err) {
+                                    console.log(err);
+                                    return response.status(500).json({
+                                        err
+                                    })
+                                } else {
+                                    let urlArray = [];
+                                    console.log(recipeResult.rows);
+                                    recipeResult.rows.forEach(function name(obj) {
+                                        urlArray.push(`https://${DOMAIN_NAME}/v1/recipe/${obj.recipe_id}`);
+                                    })
+                                    console.log(urlArray);
+                                    let payload = {
+                                        default: 'Hello Cloud Servers',
+                                        data: {
+                                            email: user.emailaddress,
+                                            urlArray
+                                        }
+                                    };
+
+                                    payload.data = JSON.stringify(payload.data);
+                                    payload = JSON.stringify(payload);
+
+                                    let params = {
+                                        Message: payload,
+                                        TopicArn: data.TopicArn
+                                    };
+                                    sns.publish(params, (err, data) => {
+                                        if (err) console.log(err)
+                                        else {
+                                            console.log('published notification');
+                                            response.status(201).json({
+                                                "SNS Response": "Recipe link sent on email :-) !!",
+                                                data
+                                            });
+                                        }
+
+                                    });
+                                }
+                            });
+
+                        }
+                    }
+                });
+            });
+        },
+        function (err) {
+            logger.error(err);
+            response.status(401).send(err);
+
+        });
+}
+
+
 
 module.exports = {
     createRecipe,
     deleteRecipe,
     updateRecipe,
     getRecipe,
-    getNewRecipe
+    getNewRecipe,
+    myrecipes
 }
