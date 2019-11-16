@@ -20,7 +20,7 @@ app.listen(PORT, () => {
 });
 
 //app.use(morganLogger('dev'));
-app.post('/v1/user', api.createUser);
+app.post('/v2/user', api.createUser);
 app.put('/v1/user/self', api.updateUser);
 app.get('/v1/user/self', api.getUser);
 
