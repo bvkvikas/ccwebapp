@@ -462,8 +462,6 @@ resource "aws_instance" "web-1" {
                       echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
                       echo export bucket=${var.codedeployS3Bucket} >> environment.sh
                       echo export DOMAIN_NAME=${var.domainName} >> environment.sh
-                      cd /home/centos/node-app/assignment2
-                      sudo cp ./RecipeOnTheGo.service /etc/systemd/system/RecipeOnTheGo.service
                      
                       
   EOF
