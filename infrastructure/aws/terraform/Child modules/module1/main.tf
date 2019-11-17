@@ -28,5 +28,7 @@ module "my_ec2" {
   codeDeployApplicationName  = "${var.codeDeployApplicationName}"
   codeDeployApplicationGroup = "${var.codeDeployApplicationGroup}"
   aws_circleci_user_name     = "${var.aws_circleci_user_name}"
-
+  lambdaBucket               = "${var.lambdaBucket}"
+  domainName                 = "${var.domainName}"
 }
+

@@ -140,7 +140,7 @@ const createRecipe = (request, response) => {
 
 const deleteRecipe = (request, response) => {
     logger.info("delete recipe call");
-    sdc.increment('Delete book by id')
+    sdc.increment('Delete recipe by id')
     let id = request.params.id;
 
     if (id != null) {
@@ -529,17 +529,24 @@ const myrecipes = (request, response) => {
                             });
                         });
                     } else {
-                        if (recipeResult.rows.length > 0) {
+                        if (recipeResult.rows.length == 0) {
+                            return response.status(500).json({
+                                response: 'user does not have any recipes'
+                            });
+                        } else {
                             let topicParams = {
                                 Name: 'user-recipes-topic'
                             };
+
                             sns.createTopic(topicParams, (err, data) => {
+                                console.log('creating topic');
                                 if (err) {
                                     console.log(err);
                                     return response.status(500).json({
                                         err
                                     })
                                 } else {
+
                                     let urlArray = [];
                                     console.log(recipeResult.rows);
                                     recipeResult.rows.forEach(function name(obj) {

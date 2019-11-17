@@ -5,7 +5,7 @@ const api = require('./src/api/api');
 const recipe = require('./src/api/recipe');
 const image = require('./src/api/image');
 const dotenv = require('dotenv');
-const logger = require('./config/winston')
+const logger = require('./config/winston');
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -39,24 +39,25 @@ app.post('/v1/recipe/:recipeId/image', image.uploadImage);
 app.delete('/v1/recipe/:recipeId/image/:imageId', image.deleteImage);
 
 
-// catch 404 and forward to error handler
-app.use((req, res, next) => {
-  const error = new Error('Not found');
-  error.status(404);
-  logger.error(error);
-  next(error);
-});
+// // catch 404 and forward to error handler
+// app.use((req, res, next) => {
+//   //const error = new Error('Not found');
+//   // error.status(404);
+//   //logger.error(error);
+//   next(error);
+// });
 
 
-app.use((error, req, res, next) => {
-  res.status(error.status || 500);
-  logger.error(error.message);
-  res.json({
-    error: {
-      message: error.message
-    }
+// app.use((error, req, res, next) => {
+//   // res.status(error.status || 500);
+//   console.log(error);
+//   // logger.error(error.message);
+//   res.json({
+//     error: {
+//       message: error.message
+//     }
 
-  });
-});
+//   });
+// });
 
 module.exports = app;

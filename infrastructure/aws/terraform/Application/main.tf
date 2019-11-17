@@ -99,29 +99,6 @@ resource "aws_s3_bucket" "s3" {
   }
 }
 
-resource "aws_s3_bucket" "tests3" {
-
-  bucket        = "${var.test_bucketName}"
-  acl           = "private"
-  force_destroy = true
-
-  lifecycle_rule {
-    enabled = true
-    transition {
-      days          = 30
-      storage_class = "STANDARD_IA"
-    }
-  }
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm = "aws:kms"
-      }
-    }
-  }
-}
-
 
 resource "aws_dynamodb_table" "basic-dynamodb-table" {
   name           = "csye6225"
@@ -201,7 +178,7 @@ resource "aws_iam_policy" "policy2" {
                 "s3:PutObject"
             ],
             "Resource": [
-                "*"
+            "arn:aws:s3:::${var.codedeployS3Bucket}"
             ]
         }
     ]
@@ -451,12 +428,6 @@ resource "aws_codedeploy_deployment_group" "codedeploy_deployment_group" {
     deployment_type   = "IN_PLACE"
   }
 
-  # trigger_configuration {
-  #   trigger_events     = ["DeploymentFailure"]
-  #   trigger_name       = "example-trigger"
-  #   trigger_target_arn = "${aws_sns_topic.example.arn}"
-  # }
-
   auto_rollback_configuration {
     enabled = true
     events  = ["DEPLOYMENT_FAILURE"]
@@ -490,7 +461,9 @@ resource "aws_instance" "web-1" {
                       echo export PORT=3005 >> environment.sh
                       echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
                       echo export bucket=${var.codedeployS3Bucket} >> environment.sh
-                      echo export DOMAIN_NAME=${var.bucketName} >> environment.sh
+                      echo export DOMAIN_NAME=${var.domainName} >> environment.sh
+                      cd /home/centos/node-app/assignment2
+                      sudo cp ./RecipeOnTheGo.service /etc/systemd/system/RecipeOnTheGo.service
                      
                       
   EOF
@@ -585,4 +558,29 @@ resource "aws_sns_topic_subscription" "user_updates_sqs_target" {
   topic_arn = "${aws_sns_topic.user-recipes.arn}"
   protocol  = "lambda"
   endpoint  = "${aws_lambda_function.user_recipes_fn.arn}"
+}
+
+resource "aws_s3_bucket" "lambdaBucket" {
+  bucket        = "${var.lambdaBucket}"
+  acl           = "private"
+  force_destroy = true
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "aws:kms"
+      }
+    }
+  }
+  tags = {
+    Name = "${var.lambdaBucket}"
+  }
+
+  lifecycle_rule {
+    enabled = "true"
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA" # or "ONEZONE_IA"
+    }
+  }
+
 }

@@ -88,3 +88,12 @@ variable "key_name" {
 variable "aws_circleci_user_name" {
   type = "string"
 }
+
+variable "lambdaBucket" {
+  type    = "string"
+  default = "lambdaBucket"
+}
+
+variable "domainName" {
+  type = "string"
+}
