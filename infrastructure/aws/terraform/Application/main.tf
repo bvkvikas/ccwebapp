@@ -440,50 +440,50 @@ resource "aws_codedeploy_deployment_group" "codedeploy_deployment_group" {
 }
 
 
-resource "aws_instance" "web-1" {
-  ami           = "${var.ami_id}"
-  instance_type = "t2.micro"
-  key_name      = "${var.key_name}"
-  user_data     = <<-EOF
-                      #!/bin/bash -ex
-                      exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-                      echo BEGIN
-                      date '+%Y-%m-%d %H:%M:%S'
-                      echo END
-                      cd /home/centos
-                      sudo touch environment.sh
-                      chmod 777 environment.sh
-                      echo export host=${aws_db_instance.rds.address} >> environment.sh
-                      echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> environment.sh
-                      echo export RDS_USER_NAME=thunderstorm >> environment.sh
-                      echo export RDS_PASSWORD=thunderstorm_123 >> environment.sh
-                      echo export RDS_DB_NAME=thunderstorm >> environment.sh
-                      echo export PORT=3005 >> environment.sh
-                      echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
-                      echo export bucket=${var.codedeployS3Bucket} >> environment.sh
-                      echo export DOMAIN_NAME=${var.domainName} >> environment.sh
-                     
-                      
-  EOF
-  ebs_block_device {
-    device_name           = "/dev/sda1"
-    volume_size           = "20"
-    volume_type           = "gp2"
-    delete_on_termination = "true"
-  }
-  iam_instance_profile = "${aws_iam_instance_profile.role1_profile.name}"
+# resource "aws_instance" "web-1" {
+#   ami           = "${var.ami_id}"
+#   instance_type = "t2.micro"
+#   key_name      = "${var.key_name}"
+#   user_data     = <<-EOF
+#                       #!/bin/bash -ex
+#                       exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+#                       echo BEGIN
+#                       date '+%Y-%m-%d %H:%M:%S'
+#                       echo END
+#                       cd /home/centos
+#                       sudo touch environment.sh
+#                       chmod 777 environment.sh
+#                       echo export host=${aws_db_instance.rds.address} >> environment.sh
+#                       echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> environment.sh
+#                       echo export RDS_USER_NAME=thunderstorm >> environment.sh
+#                       echo export RDS_PASSWORD=thunderstorm_123 >> environment.sh
+#                       echo export RDS_DB_NAME=thunderstorm >> environment.sh
+#                       echo export PORT=3005 >> environment.sh
+#                       echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
+#                       echo export bucket=${var.codedeployS3Bucket} >> environment.sh
+#                       echo export DOMAIN_NAME=${var.domainName} >> environment.sh
 
 
-  tags = {
-    name = "Codedeploy_ec2"
-  }
-  vpc_security_group_ids = ["${aws_security_group.application_security_group.id}"]
+#   EOF
+#   ebs_block_device {
+#     device_name           = "/dev/sda1"
+#     volume_size           = "20"
+#     volume_type           = "gp2"
+#     delete_on_termination = "true"
+#   }
+#   iam_instance_profile = "${aws_iam_instance_profile.role1_profile.name}"
 
-  associate_public_ip_address = true
-  source_dest_check           = false
-  subnet_id                   = "${var.subnet2_id}"
-  depends_on                  = ["aws_db_instance.rds"]
-}
+
+#   tags = {
+#     name = "Codedeploy_ec2"
+#   }
+#   vpc_security_group_ids = ["${aws_security_group.application_security_group.id}"]
+
+#   associate_public_ip_address = true
+#   source_dest_check           = false
+#   subnet_id                   = "${var.subnet2_id}"
+#   depends_on                  = ["aws_db_instance.rds"]
+# }
 
 
 
@@ -606,4 +606,165 @@ EOF
 resource "aws_iam_role_policy_attachment" "AttachSNSToEC2" {
   role       = "${aws_iam_role.role1.name}"
   policy_arn = "${aws_iam_policy.SNSToEC2.arn}"
+}
+
+
+resource "aws_launch_configuration" "asg_launch_config" {
+  image_id      = "${var.ami_id}"
+  instance_type = "t2.micro"
+  key_name      = "${var.key_name}"
+  user_data     = <<-EOF
+                      #!/bin/bash -ex
+                      exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+                      echo BEGIN
+                      date '+%Y-%m-%d %H:%M:%S'
+                      echo END
+                      cd /home/centos
+                      sudo touch environment.sh
+                      chmod 777 environment.sh
+                      echo export host=${aws_db_instance.rds.address} >> environment.sh
+                      echo export RDS_CONNECTION_STRING=${aws_db_instance.rds.address} >> environment.sh
+                      echo export RDS_USER_NAME=thunderstorm >> environment.sh
+                      echo export RDS_PASSWORD=thunderstorm_123 >> environment.sh
+                      echo export RDS_DB_NAME=thunderstorm >> environment.sh
+                      echo export PORT=3005 >> environment.sh
+                      echo export S3_BUCKET_NAME=${var.bucketName} >> environment.sh
+                      echo export bucket=${var.codedeployS3Bucket} >> environment.sh
+                      echo export DOMAIN_NAME=${var.domainName} >> environment.sh
+  EOF
+  root_block_device {
+    volume_size           = "20"
+    volume_type           = "gp2"
+    delete_on_termination = "true"
+  }
+  iam_instance_profile        = "${aws_iam_instance_profile.role1_profile.name}"
+  security_groups             = ["${aws_security_group.application_security_group.id}"]
+  associate_public_ip_address = true
+  depends_on                  = ["aws_db_instance.rds"]
+}
+resource "aws_autoscaling_group" "as_group" {
+  launch_configuration = "${aws_launch_configuration.asg_launch_config.name}"
+  vpc_zone_identifier  = ["${var.subnet2_id}"]
+  target_group_arns    = ["${aws_lb_target_group.ip-example.arn}"]
+  health_check_type    = "ELB"
+  min_size             = 3
+  max_size             = 10
+  default_cooldown     = "60"
+  tag {
+    #need to check
+    key                 = "name"
+    value               = "Codedeploy_ec2"
+    propagate_at_launch = true
+  }
+}
+# scale up alarm
+resource "aws_autoscaling_policy" "example-cpu-policy" {
+  name                   = "example-cpu-policy"
+  autoscaling_group_name = "${aws_autoscaling_group.as_group.name}"
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = "1"
+  cooldown               = "60"
+  policy_type            = "SimpleScaling"
+}
+resource "aws_cloudwatch_metric_alarm" "example-cpu-alarm" {
+  alarm_name          = "example-cpu-alarm"
+  alarm_description   = "example-cpu-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "300"
+  statistic           = "Average"
+  threshold           = "90"
+  dimensions = {
+    "AutoScalingGroupName" = "${aws_autoscaling_group.as_group.name}"
+  }
+  actions_enabled = true
+  alarm_actions   = ["${aws_autoscaling_policy.example-cpu-policy.arn}"]
+}
+# scale down alarm
+resource "aws_autoscaling_policy" "example-cpu-policy-scaledown" {
+  name                   = "example-cpu-policy-scaledown"
+  autoscaling_group_name = "${aws_autoscaling_group.as_group.name}"
+  adjustment_type        = "ChangeInCapacity"
+  scaling_adjustment     = "-1"
+  cooldown               = "60"
+  policy_type            = "SimpleScaling"
+}
+resource "aws_cloudwatch_metric_alarm" "example-cpu-alarm-scaledown" {
+  alarm_name          = "example-cpu-alarm-scaledown"
+  alarm_description   = "example-cpu-alarm-scaledown"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "300"
+  statistic           = "Average"
+  threshold           = "70"
+  dimensions = {
+    "AutoScalingGroupName" = "${aws_autoscaling_group.as_group.name}"
+  }
+  actions_enabled = true
+  alarm_actions   = ["${aws_autoscaling_policy.example-cpu-policy-scaledown.arn}"]
+}
+resource "aws_lb" "loadBalancer" {
+  name                       = "test-lb-tf"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = ["${aws_security_group.application_security_group.id}"]
+  subnets                    = ["${var.subnet2_id}", "${var.subnet3_id}"]
+  ip_address_type            = "ipv4"
+  enable_deletion_protection = false
+}
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = "${aws_lb.loadBalancer.arn}"
+  port              = "80"
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.ip-example.arn}"
+  }
+}
+#web server group
+resource "aws_lb_target_group" "ip-example" {
+  name     = "tf-example-lb-tg"
+  port     = 3005
+  protocol = "HTTPS"
+  vpc_id   = "${var.vpc_id}"
+  health_check {
+    interval            = 10
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    path                = "/v1/howyoudoin"
+  }
+}
+resource "aws_lb_listener" "ssl" {
+  load_balancer_arn = "${aws_lb.loadBalancer.arn}"
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = "${data.aws_acm_certificate.example.arn}"
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.ip-example.arn}"
+  }
+}
+data "aws_acm_certificate" "example" {
+  domain   = "${var.domainName}"
+  statuses = ["ISSUED"]
+}
+data "aws_route53_zone" "selected" {
+  name         = "${var.domainName}"
+  private_zone = false
+}
+resource "aws_route53_record" "www" {
+  zone_id = "${data.aws_route53_zone.selected.zone_id}"
+  name    = "example.com"
+  type    = "A"
+  alias {
+    name                   = "${aws_lb.loadBalancer.dns_name}"
+    zone_id                = "${aws_lb.loadBalancer.zone_id}"
+    evaluate_target_health = true
+  }
 }
