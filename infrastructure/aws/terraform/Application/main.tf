@@ -582,3 +582,28 @@ resource "aws_s3_bucket" "lambdaBucket" {
   }
 
 }
+
+resource "aws_iam_policy" "SNSToEC2" {
+  name        = "SNSToEC2"
+  description = "A test policy"
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "sns:*"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "AttachSNSToEC2" {
+  role       = "${aws_iam_role.role1.name}"
+  policy_arn = "${aws_iam_policy.SNSToEC2.arn}"
+}
