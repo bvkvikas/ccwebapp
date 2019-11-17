@@ -38,7 +38,11 @@ app.get('/v1/recipe/:recipeId/image/:imageId', image.getImage);
 app.post('/v1/recipe/:recipeId/image', image.uploadImage);
 app.delete('/v1/recipe/:recipeId/image/:imageId', image.deleteImage);
 
-
+app.get('/v1/howyoudoin', (request, response) => {
+  return response.status(200).send({
+    message: 'all good'
+  });
+})
 // // catch 404 and forward to error handler
 // app.use((req, res, next) => {
 //   //const error = new Error('Not found');
