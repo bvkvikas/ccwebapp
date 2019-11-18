@@ -3,7 +3,7 @@ jobs:
   build:
     branches:
         only:
-          - Assignment8_KV
+          - Assignment8_PJ
     docker:
       - image: circleci/python:3.6-jessie
         environment:

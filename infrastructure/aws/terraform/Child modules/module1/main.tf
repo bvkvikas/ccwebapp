@@ -30,5 +30,6 @@ module "my_ec2" {
   aws_circleci_user_name     = "${var.aws_circleci_user_name}"
   lambdaBucket               = "${var.lambdaBucket}"
   domainName                 = "${var.domainName}"
+  
 }
 
