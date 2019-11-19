@@ -62,6 +62,7 @@ var authPromise = function (req) {
 const createUser = (request, response) => {
     logger.info("User Register Call");
     sdc.increment('POST user');
+    sdc.timing('response_time', 42);
     const {
         emailaddress,
         password,
@@ -111,7 +112,8 @@ const createUser = (request, response) => {
 
 const updateUser = (request, response) => {
     logger.info("User update Call");
-    sdc.increment('UPdate user');
+    sdc.increment('Update user');
+    sdc.timing('response_time', 42);
     authPromise(request).then(
 
         function (user) {
@@ -197,6 +199,7 @@ const updateUser = (request, response) => {
 const getUser = (request, response) => {
     logger.info("User GET Call");
     sdc.increment('GET User (time)');
+    sdc.timing('response_time', 42);
     authPromise(request).then(
         function (user) {
             // console.log(user);

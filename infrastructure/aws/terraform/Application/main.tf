@@ -403,6 +403,7 @@ resource "aws_codedeploy_deployment_group" "codedeploy_deployment_group" {
 
     }
   }
+  autoscaling_groups = ["${aws_autoscaling_group.as_group.name}"]
 }
 
 
@@ -614,6 +615,10 @@ resource "aws_launch_configuration" "asg_launch_config" {
   security_groups             = ["${aws_security_group.application_security_group.id}"]
   associate_public_ip_address = true
   depends_on                  = ["aws_db_instance.rds"]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 
@@ -677,6 +682,10 @@ resource "aws_autoscaling_group" "as_group" {
   launch_configuration = "${aws_launch_configuration.asg_launch_config.name}"
   vpc_zone_identifier  = ["${var.subnet2_id}", "${var.subnet3_id}"]
   target_group_arns    = ["${aws_lb_target_group.ip-example.arn}"]
+  
+   lifecycle {
+    create_before_destroy = true
+  }
   min_size             = 3
   max_size             = 10
   default_cooldown     = "60"
@@ -687,6 +696,7 @@ resource "aws_autoscaling_group" "as_group" {
     propagate_at_launch = true
   }
 }
+
 # scale up alarm
 resource "aws_autoscaling_policy" "example-cpu-policy" {
   name                   = "example-cpu-policy"
