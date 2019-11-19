@@ -1,30 +1,20 @@
-
+#security groups
+#Application Security group
 resource "aws_security_group" "application_security_group" {
   name        = "application_security_group"
   description = "Application security group"
   vpc_id      = "${var.vpc_id}"
 
   ingress {
-    from_port   = 3005
-    to_port     = 3005
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port       = 3005
+    to_port         = 3005
+    protocol        = "tcp"
+    cidr_blocks     = ["0.0.0.0/0"]
+    security_groups = ["${aws_security_group.lb_sg.id}"]
   }
   ingress {
     from_port   = 22
     to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  ingress {
-    from_port   = 443
-    to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -36,6 +26,32 @@ resource "aws_security_group" "application_security_group" {
   }
 }
 
+
+
+## Security Group for ALB
+resource "aws_security_group" "lb_sg" {
+  name        = "aws_lb_sg"
+  vpc_id      = "${var.vpc_id}"
+  description = "Allow ALB inbound traffic"
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
+
+
+#Creating db security group
 resource "aws_db_subnet_group" "rds_sn" {
   name       = "rds_subnet_group"
   subnet_ids = ["${var.subnet2_id}", "${var.subnet3_id}"]
@@ -109,52 +125,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     type = "S"
   }
 }
-
-
-resource "aws_iam_policy" "policy1" {
-  name        = "CircleCI-Code-Deploy"
-  description = "Code Deploy Policy for user circleci"
-  policy      = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codedeploy:RegisterApplicationRevision",
-        "codedeploy:GetApplicationRevision"
-      ],
-      "Resource": [
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:application:${var.codeDeployApplicationName}"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "codedeploy:CreateDeployment",
-        "codedeploy:GetDeployment"
-      ],
-      "Resource": [
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentgroup:${var.codeDeployApplicationName}/${var.codeDeployApplicationGroup}" 
-      ]
-    },
-    {
-      "Effect": "Allow",  
-      "Action": [
-        "codedeploy:GetDeploymentConfig"
-      ],
-      "Resource": [
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:${var.codeDeployApplicationGroup}",
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:CodeDeployDefault.OneAtATime",
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:CodeDeployDefault.HalfAtATime",
-        "arn:aws:codedeploy:${var.region}:${var.accountId}:deploymentconfig:CodeDeployDefault.AllAtOnce"
-      ]
-    }
-  ]
-}
-EOF
-}
-
+#policies
 
 resource "aws_iam_policy" "policy2" {
   name        = "CircleCI-Upload-To-S3"
@@ -169,7 +140,9 @@ resource "aws_iam_policy" "policy2" {
                 "s3:PutObject"
             ],
             "Resource": [
-            "arn:aws:s3:::${var.codedeployS3Bucket}"
+            "arn:aws:s3:::${var.codedeployS3Bucket}",
+            "arn:aws:s3:::${var.lambdaBucket}",
+            "arn:aws:s3:::${var.bucketName}"
             ]
         }
     ]
@@ -227,42 +200,6 @@ resource "aws_iam_policy" "policy3" {
 EOF
 }
 
-resource "aws_iam_policy_attachment" "circleci-attach1" {
-  name  = "circleci-attachment-codedeploy"
-  users = ["${var.aws_circleci_user_name}"]
-  #roles      = ["${aws_iam_role.role.name}"]
-  #groups     = ["${aws_iam_group.group.name}"]
-  policy_arn = "${aws_iam_policy.policy1.arn}"
-  depends_on = ["aws_iam_policy.policy1"]
-}
-
-resource "aws_iam_policy_attachment" "circleci-attach2" {
-  name  = "circleci-attachment-uploadtos3"
-  users = ["${var.aws_circleci_user_name}"]
-  #roles      = ["${aws_iam_role.role.name}"]
-  #groups     = ["${aws_iam_group.group.name}"]
-  policy_arn = "${aws_iam_policy.policy2.arn}"
-  depends_on = ["aws_iam_policy.policy2"]
-}
-
-resource "aws_iam_policy_attachment" "circleci-attach3" {
-  name  = "circleci-attachment-ec2-ami"
-  users = ["${var.aws_circleci_user_name}"]
-  #roles      = ["${aws_iam_role.role.name}"]
-  #groups     = ["${aws_iam_group.group.name}"]
-  policy_arn = "${aws_iam_policy.policy3.arn}"
-  depends_on = ["aws_iam_policy.policy3"]
-}
-
-resource "aws_iam_policy_attachment" "circleci-attach4" {
-  name  = "circleci-attachment-tests"
-  users = ["${var.aws_circleci_user_name}"]
-  #roles      = ["${aws_iam_role.role.name}"]
-  #groups     = ["${aws_iam_group.group.name}"]
-  policy_arn = "${aws_iam_policy.app_policy.arn}"
-  depends_on = ["aws_iam_policy.app_policy"]
-}
-
 resource "aws_iam_policy" "app_policy" {
   name        = "CodeDeploy-EC2-APP"
   description = "EC2 APP access policy"
@@ -294,6 +231,37 @@ resource "aws_iam_policy" "app_policy" {
 }
 EOF
 }
+
+#attanchments
+
+resource "aws_iam_policy_attachment" "circleci-attach2" {
+  name  = "circleci-attachment-uploadtos3"
+  users = ["${var.aws_circleci_user_name}"]
+  #roles      = ["${aws_iam_role.role.name}"]
+  #groups     = ["${aws_iam_group.group.name}"]
+  policy_arn = "${aws_iam_policy.policy2.arn}"
+  depends_on = ["aws_iam_policy.policy2"]
+}
+
+resource "aws_iam_policy_attachment" "circleci-attach3" {
+  name  = "circleci-attachment-ec2-ami"
+  users = ["${var.aws_circleci_user_name}"]
+  #roles      = ["${aws_iam_role.role.name}"]
+  #groups     = ["${aws_iam_group.group.name}"]
+  policy_arn = "${aws_iam_policy.policy3.arn}"
+  depends_on = ["aws_iam_policy.policy3"]
+}
+
+
+resource "aws_iam_policy_attachment" "circleci-attach4" {
+  name  = "circleci-attachment-tests"
+  users = ["${var.aws_circleci_user_name}"]
+  #roles      = ["${aws_iam_role.role.name}"]
+  #groups     = ["${aws_iam_group.group.name}"]
+  policy_arn = "${aws_iam_policy.app_policy.arn}"
+  depends_on = ["aws_iam_policy.app_policy"]
+}
+
 
 resource "aws_iam_role" "role1" {
   name        = "CodeDeployEC2ServiceRole"
@@ -422,6 +390,19 @@ resource "aws_codedeploy_deployment_group" "codedeploy_deployment_group" {
     alarms  = ["my-alarm-name"]
     enabled = true
   }
+
+  load_balancer_info {
+    target_group_pair_info {
+      prod_traffic_route {
+        listener_arns = ["${aws_lb_listener.ssl.arn}"]
+      }
+
+      target_group {
+        name = "${aws_lb_target_group.ip-example.name}"
+      }
+
+    }
+  }
 }
 
 
@@ -507,6 +488,12 @@ resource "aws_iam_role_policy_attachment" "mgd_pol_1" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
 }
 
+resource "aws_iam_role_policy_attachment" "lambdaCircleCI" {
+
+  role       = "${aws_iam_role.iam_for_lambda.name}"
+  policy_arn = "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
+}
+
 resource "aws_lambda_function" "user_recipes_fn" {
   filename      = "${path.module}/userRecipes.zip"
   function_name = "userRecipes"
@@ -522,7 +509,8 @@ resource "aws_lambda_function" "user_recipes_fn" {
 
   environment {
     variables = {
-      DOMAIN_NAME = "${var.bucketName}"
+      DOMAIN_NAME = "${var.domainName}",
+      TTL         = "${var.TTL}"
     }
   }
 }
@@ -627,9 +615,67 @@ resource "aws_launch_configuration" "asg_launch_config" {
   associate_public_ip_address = true
   depends_on                  = ["aws_db_instance.rds"]
 }
+
+
+
+
+
+resource "aws_lb" "my-test-lb" {
+  name                       = "my-test-lb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = ["${aws_security_group.lb_sg.id}"]
+  subnets                    = ["${var.subnet2_id}", "${var.subnet3_id}"]
+  ip_address_type            = "ipv4"
+  enable_deletion_protection = false
+
+}
+
+#web server group
+resource "aws_lb_target_group" "ip-example" {
+  name     = "tf-example-lb-tg"
+  port     = 3005
+  protocol = "HTTP"
+  vpc_id   = "${var.vpc_id}"
+  health_check {
+    interval            = 10
+    timeout             = 5
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    path                = "/v1/howyoudoin"
+  }
+}
+
+data "aws_acm_certificate" "example" {
+  domain   = "${var.domainName}"
+  statuses = ["ISSUED"]
+}
+
+resource "aws_lb_listener" "front_end" {
+  load_balancer_arn = "${aws_lb.my-test-lb.arn}"
+  port              = "80"
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.ip-example.arn}"
+  }
+}
+
+resource "aws_lb_listener" "ssl" {
+  load_balancer_arn = "${aws_lb.my-test-lb.arn}"
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = "${data.aws_acm_certificate.example.arn}"
+  default_action {
+    type             = "forward"
+    target_group_arn = "${aws_lb_target_group.ip-example.arn}"
+  }
+}
+
 resource "aws_autoscaling_group" "as_group" {
   launch_configuration = "${aws_launch_configuration.asg_launch_config.name}"
-  vpc_zone_identifier  = ["${var.subnet2_id}"]
+  vpc_zone_identifier  = ["${var.subnet2_id}", "${var.subnet3_id}"]
   target_group_arns    = ["${aws_lb_target_group.ip-example.arn}"]
   min_size             = 3
   max_size             = 10
@@ -691,53 +737,8 @@ resource "aws_cloudwatch_metric_alarm" "example-cpu-alarm-scaledown" {
   actions_enabled = true
   alarm_actions   = ["${aws_autoscaling_policy.example-cpu-policy-scaledown.arn}"]
 }
-resource "aws_lb" "loadBalancer" {
-  name                       = "test-lb-tf"
-  internal                   = false
-  load_balancer_type         = "application"
-  security_groups            = ["${aws_security_group.application_security_group.id}"]
-  subnets                    = ["${var.subnet2_id}", "${var.subnet3_id}"]
-  ip_address_type            = "ipv4"
-  enable_deletion_protection = false
-}
-resource "aws_lb_listener" "front_end" {
-  load_balancer_arn = "${aws_lb.loadBalancer.arn}"
-  port              = "80"
-  protocol          = "HTTP"
-  default_action {
-    type             = "forward"
-    target_group_arn = "${aws_lb_target_group.ip-example.arn}"
-  }
-}
-#web server group
-resource "aws_lb_target_group" "ip-example" {
-  name     = "tf-example-lb-tg"
-  port     = 3005
-  protocol = "HTTPS"
-  vpc_id   = "${var.vpc_id}"
-  health_check {
-    interval            = 10
-    timeout             = 5
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    path                = "/v1/howyoudoin"
-  }
-}
-resource "aws_lb_listener" "ssl" {
-  load_balancer_arn = "${aws_lb.loadBalancer.arn}"
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = "${data.aws_acm_certificate.example.arn}"
-  default_action {
-    type             = "forward"
-    target_group_arn = "${aws_lb_target_group.ip-example.arn}"
-  }
-}
-data "aws_acm_certificate" "example" {
-  domain   = "${var.domainName}"
-  statuses = ["ISSUED"]
-}
+
+
 data "aws_route53_zone" "selected" {
   name         = "${var.domainName}"
   private_zone = false
@@ -748,8 +749,8 @@ resource "aws_route53_record" "www" {
   name    = "${var.domainName}"
   type    = "A"
   alias {
-    name                   = "${aws_lb.loadBalancer.dns_name}"
-    zone_id                = "${aws_lb.loadBalancer.zone_id}"
+    name                   = "${aws_lb.my-test-lb.dns_name}"
+    zone_id                = "${aws_lb.my-test-lb.zone_id}"
     evaluate_target_health = false
   }
 }
@@ -759,7 +760,7 @@ resource "aws_cloudformation_stack" "waf" {
   name = "waf-stack"
 
   parameters = {
-    ALBArn = "${aws_lb.loadBalancer.arn}"
+    ALBArn = "${aws_lb.my-test-lb.arn}"
   }
 
   template_body = <<STACK
@@ -1445,3 +1446,5 @@ resource "aws_cloudformation_stack" "waf" {
 }
 STACK
 }
+
+
