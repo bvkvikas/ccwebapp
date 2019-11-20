@@ -8,6 +8,11 @@ const formidable = require('formidable');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const logger = require('../../config/winston')
+const SDC = require('statsd-client'),
+	sdc = new SDC({
+		host: 'localhost',
+		port: 8125
+	});
 
 dotenv.config();
 const {
@@ -85,6 +90,7 @@ const uploadImage = (request, response) => {
 											"filetype": image_file.type
 										}
 									};
+									let start = Date.now();
 									s3.upload(params, function (err, data) {
 										if (err) {
 											logger.error(err);
@@ -109,6 +115,9 @@ const uploadImage = (request, response) => {
 											}
 										});
 									});
+									let end = Date.now();
+									var elapsed = end - start;
+									sdc.timing('S3 upload response time', elapsed);
 								});
 							}
 						} else {
@@ -190,7 +199,7 @@ const deleteImage = (request, response) => {
 											error: 'Error deleting the file from DB'
 										});
 									}
-									console.log("successfully deleted the file.");
+									let start = Date.now();
 									s3.deleteObject(params, function (err, data) {
 										if (err) {
 											return response.status(500).send({
@@ -200,6 +209,9 @@ const deleteImage = (request, response) => {
 										console.log('File deleted successfully.');
 										return response.status(204).end();
 									});
+									let end = Date.now();
+									var elapsed = end - start;
+									sdc.timing('S3 delete response time', elapsed);
 								});
 
 							}

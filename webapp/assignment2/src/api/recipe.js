@@ -3,21 +3,32 @@ const uuidv4 = require('uuid/v4');
 const database = db.connection;
 const format = require('pg-format');
 const AWS = require('aws-sdk');
+AWS.config.update({
+    region: 'us-east-1'
+});
 const api = require('./api');
 const logger = require('../../config/winston')
-const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 8125 });
+const SDC = require('statsd-client'),
+    sdc = new SDC({
+        host: 'localhost',
+        port: 8125
+    });
 
 const {
-    S3_BUCKET_NAME
+    S3_BUCKET_NAME,
+    DOMAIN_NAME
 } = process.env;
 
 
 // Create an S3 client
 var s3 = new AWS.S3();
+var sns = new AWS.SNS();
 
 const createRecipe = (request, response) => {
     logger.info("create recipe call");
-    sdc.increment('Create recipe')
+    sdc.increment('Create recipe');
+    // sdc.timing('response_time', 42);
+    let start = Date.now();
     const {
         cook_time_in_min,
         prep_time_in_min,
@@ -127,11 +138,15 @@ const createRecipe = (request, response) => {
         });
 
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Create recipe response time', elapsed);
 }
 
 const deleteRecipe = (request, response) => {
     logger.info("delete recipe call");
-    sdc.increment('Delete book by id')
+    sdc.increment('Delete recipe by id');
+    let start = Date.now();
     let id = request.params.id;
 
     if (id != null) {
@@ -154,7 +169,9 @@ const deleteRecipe = (request, response) => {
                                     database.query('select * from IMAGES where recipe_id = $1', [id], function (err, imgresult) {
                                         if (err) {
                                             logger.error(err);
-                                            return response.status(404).json({ info: 'sql error' })
+                                            return response.status(404).json({
+                                                info: 'sql error'
+                                            })
                                         } else {
                                             if (imgresult.rows.length > 0) {
                                                 imgresult.rows.forEach(function (img) {
@@ -221,10 +238,14 @@ const deleteRecipe = (request, response) => {
             message: 'Missing Parameters. Bad Request'
         });
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Delete recipe response time', elapsed);
 }
 const updateRecipe = (request, response) => {
     logger.info("update recipe call");
-    sdc.increment('Update recipe')
+    sdc.increment('Update recipe');
+    let start = Date.now();
     var id = request.params.id;
 
     const {
@@ -375,13 +396,17 @@ const updateRecipe = (request, response) => {
             info: 'Please enter all details'
         });
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Update recipe response time', elapsed);
 }
 
 
 
 const getRecipe = (request, response) => {
     logger.info("get recipe call");
-    sdc.increment('Get recipe')
+    sdc.increment('Get recipe');
+    let start = Date.now();
     var id = request.params.id;
     if (id != null) {
         database.query(
@@ -441,11 +466,15 @@ const getRecipe = (request, response) => {
             error: 'Please enter the recipe id'
         });
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Get recipe response time', elapsed);
 }
 
 const getNewRecipe = (request, response) => {
     logger.info("get new recipe call");
     sdc.increment('Get newest recipe')
+    let start = Date.now();
     database.query(
         'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
        ORDER BY created_ts DESC LIMIT 1',
@@ -498,8 +527,97 @@ const getNewRecipe = (request, response) => {
                 }
             }
         });
-
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Get new recipe response time', elapsed);
 }
+
+const myrecipes = (request, response) => {
+    logger.info('get myRecipes call');
+    sdc.increment('Get my recipes');
+    let start = Date.now();
+    api.authPromise(request).then(
+        function (user) {
+            const user_id = user.id;
+            database.query("BEGIN", function (err, result) {
+                database.query("SELECT recipe_id FROM RECIPE WHERE author_id = $1", [user_id], function (err, recipeResult) {
+                    if (err) {
+                        logger.error(err);
+                        console.log(err);
+                        database.query('ROLLBACK', function (err, result) {
+                            return response.status(500).json({
+                                info: 'Couldn\'t read from db'
+                            });
+                        });
+                    } else {
+                        if (recipeResult.rows.length == 0) {
+                            return response.status(500).json({
+                                response: 'user does not have any recipes'
+                            });
+                        } else {
+                            let topicParams = {
+                                Name: 'user-recipes-topic'
+                            };
+
+                            sns.createTopic(topicParams, (err, data) => {
+                                console.log('creating topic');
+                                if (err) {
+                                    console.log(err);
+                                    return response.status(500).json({
+                                        err
+                                    })
+                                } else {
+
+                                    let urlArray = [];
+                                    console.log(recipeResult.rows);
+                                    recipeResult.rows.forEach(function name(obj) {
+                                        urlArray.push(`https://${DOMAIN_NAME}/v1/recipe/${obj.recipe_id}`);
+                                    })
+                                    console.log(urlArray);
+                                    let payload = {
+                                        default: 'Hello Cloud Servers',
+                                        data: {
+                                            email: user.emailaddress,
+                                            urlArray
+                                        }
+                                    };
+
+                                    payload.data = JSON.stringify(payload.data);
+                                    payload = JSON.stringify(payload);
+
+                                    let params = {
+                                        Message: payload,
+                                        TopicArn: data.TopicArn
+                                    };
+                                    sns.publish(params, (err, data) => {
+                                        if (err) console.log(err)
+                                        else {
+                                            console.log('published notification');
+                                            response.status(201).json({
+                                                "SNS Response": "Recipe link sent on email :-) !!",
+                                                data
+                                            });
+                                        }
+
+                                    });
+                                }
+                            });
+
+                        }
+                    }
+                });
+            });
+        },
+        function (err) {
+            logger.error(err);
+            response.status(401).send(err);
+
+        });
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Get myrecipes response time', elapsed);
+}
+
 
 
 module.exports = {
@@ -507,5 +625,6 @@ module.exports = {
     deleteRecipe,
     updateRecipe,
     getRecipe,
-    getNewRecipe
+    getNewRecipe,
+    myrecipes
 }
