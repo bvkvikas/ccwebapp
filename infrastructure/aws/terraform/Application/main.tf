@@ -630,7 +630,6 @@ resource "aws_launch_configuration" "asg_launch_config" {
 
 
 
-
 resource "aws_lb" "my-test-lb" {
   name                       = "my-test-lb"
   internal                   = false
