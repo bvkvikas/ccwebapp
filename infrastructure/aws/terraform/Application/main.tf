@@ -682,13 +682,13 @@ resource "aws_autoscaling_group" "as_group" {
   launch_configuration = "${aws_launch_configuration.asg_launch_config.name}"
   vpc_zone_identifier  = ["${var.subnet2_id}", "${var.subnet3_id}"]
   target_group_arns    = ["${aws_lb_target_group.ip-example.arn}"]
-  
-   lifecycle {
+
+  lifecycle {
     create_before_destroy = true
   }
-  min_size             = 3
-  max_size             = 10
-  default_cooldown     = "60"
+  min_size         = 3
+  max_size         = 10
+  default_cooldown = "60"
   tag {
     #need to check
     key                 = "name"
@@ -713,9 +713,9 @@ resource "aws_cloudwatch_metric_alarm" "example-cpu-alarm" {
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "300"
+  period              = "60"
   statistic           = "Average"
-  threshold           = "90"
+  threshold           = "5"
   dimensions = {
     "AutoScalingGroupName" = "${aws_autoscaling_group.as_group.name}"
   }
@@ -738,9 +738,9 @@ resource "aws_cloudwatch_metric_alarm" "example-cpu-alarm-scaledown" {
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
   namespace           = "AWS/EC2"
-  period              = "300"
+  period              = "60"
   statistic           = "Average"
-  threshold           = "70"
+  threshold           = "3"
   dimensions = {
     "AutoScalingGroupName" = "${aws_autoscaling_group.as_group.name}"
   }
