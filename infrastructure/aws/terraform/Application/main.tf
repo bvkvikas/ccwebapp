@@ -262,6 +262,12 @@ resource "aws_iam_policy_attachment" "circleci-attach4" {
   depends_on = ["aws_iam_policy.app_policy"]
 }
 
+resource "aws_iam_policy_attachment" "lambdaCircleCI" {
+  name       = "circleci-attachment-tests"
+  users      = ["${var.aws_circleci_user_name}"]
+  policy_arn = "arn:aws:iam::aws:policy/AWSLambdaFullAccess"
+  depends_on = ["aws_iam_policy.policy3"]
+}
 
 resource "aws_iam_role" "role1" {
   name        = "CodeDeployEC2ServiceRole"
