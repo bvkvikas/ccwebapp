@@ -27,7 +27,8 @@ var sns = new AWS.SNS();
 const createRecipe = (request, response) => {
     logger.info("create recipe call");
     sdc.increment('Create recipe');
-    sdc.timing('response_time', 42);
+    // sdc.timing('response_time', 42);
+    let start = Date.now();
     const {
         cook_time_in_min,
         prep_time_in_min,
@@ -137,12 +138,15 @@ const createRecipe = (request, response) => {
         });
 
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Create recipe response time', elapsed);
 }
 
 const deleteRecipe = (request, response) => {
     logger.info("delete recipe call");
     sdc.increment('Delete recipe by id');
-    sdc.timing('response_time', 42);
+    let start = Date.now();
     let id = request.params.id;
 
     if (id != null) {
@@ -234,11 +238,14 @@ const deleteRecipe = (request, response) => {
             message: 'Missing Parameters. Bad Request'
         });
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Delete recipe response time', elapsed);
 }
 const updateRecipe = (request, response) => {
     logger.info("update recipe call");
     sdc.increment('Update recipe');
-    sdc.timing('response_time', 42);
+    let start = Date.now();
     var id = request.params.id;
 
     const {
@@ -389,6 +396,9 @@ const updateRecipe = (request, response) => {
             info: 'Please enter all details'
         });
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Update recipe response time', elapsed);
 }
 
 
@@ -396,7 +406,7 @@ const updateRecipe = (request, response) => {
 const getRecipe = (request, response) => {
     logger.info("get recipe call");
     sdc.increment('Get recipe');
-    sdc.timing('response_time', 42);
+    let start = Date.now();
     var id = request.params.id;
     if (id != null) {
         database.query(
@@ -456,12 +466,15 @@ const getRecipe = (request, response) => {
             error: 'Please enter the recipe id'
         });
     }
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Get recipe response time', elapsed);
 }
 
 const getNewRecipe = (request, response) => {
     logger.info("get new recipe call");
     sdc.increment('Get newest recipe')
-    sdc.timing('response_time', 42);
+    let start = Date.now();
     database.query(
         'SELECT recipe_id, created_ts, updated_ts, author_id, cook_time_in_min, prep_time_in_min, total_time_in_min, title, cusine, servings, ingredients from RECIPE \
        ORDER BY created_ts DESC LIMIT 1',
@@ -514,13 +527,15 @@ const getNewRecipe = (request, response) => {
                 }
             }
         });
-
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Get new recipe response time', elapsed);
 }
 
 const myrecipes = (request, response) => {
     logger.info('get myRecipes call');
     sdc.increment('Get my recipes');
-    sdc.timing('response_time', 42);
+    let start = Date.now();
     api.authPromise(request).then(
         function (user) {
             const user_id = user.id;
@@ -598,6 +613,9 @@ const myrecipes = (request, response) => {
             response.status(401).send(err);
 
         });
+    let end = Date.now();
+    var elapsed = end - start;
+    sdc.timing('Get myrecipes response time', elapsed);
 }
 
 

@@ -5,7 +5,11 @@ const validator = new Validator();
 const uuidv1 = require('uuid/v1');
 const database = db.connection;
 const logger = require('../../config/winston')
-const SDC = require('statsd-client'), sdc = new SDC({ host: 'localhost', port: 8125 });
+const SDC = require('statsd-client'),
+    sdc = new SDC({
+        host: 'localhost',
+        port: 8125
+    });
 
 var authPromise = function (req) {
     return new Promise(function (resolve, reject) {
@@ -23,6 +27,7 @@ var authPromise = function (req) {
             let password = creds[1];
 
             if (username != "" && password != "") {
+                let start = Date.now();
                 database.query(
                     `SELECT * from appusers where emailaddress = $1`, [username],
                     function (err, result) {
@@ -49,6 +54,9 @@ var authPromise = function (req) {
                             };
                         }
                     });
+                let end = Date.now();
+                var elapsed = end - start;
+                sdc.timing('DB get User response time', elapsed);
             } else {
                 reject({
                     message: 'Enter all fields'
@@ -74,6 +82,7 @@ const createUser = (request, response) => {
         if (emailaddress != null && password != null && firstname != null & lastname != null) {
             if (validator.validateEmail(emailaddress)) {
                 if (validator.validatePassword(password)) {
+                    let start = Date.now();
                     database.query(
                         'INSERT INTO APPUSERS (id, emailaddress, password, firstname, lastname, account_created, account_updated) \
                   VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, emailaddress,firstname, lastname, account_created, account_updated', [uuidv1(), emailaddress, hash, firstname, lastname, new Date(), new Date()],
@@ -89,6 +98,9 @@ const createUser = (request, response) => {
                                 });
                             }
                         });
+                    let end = Date.now();
+                    var elapsed = end - start;
+                    sdc.timing('DB createUser insert response time', elapsed);
                 } else {
                     return response.status(400).json({
                         info: 'Password is not strong enough'
