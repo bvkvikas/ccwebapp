@@ -2,8 +2,8 @@ version: 2
 jobs:
   build:
     branches:
-        only:
-          - Test
+      only:
+        - Test
     docker:
       - image: circleci/python:3.6-jessie
         environment:
@@ -20,7 +20,8 @@ jobs:
           name: install dependencies
           command: |
             sudo apt-get update
-            sudo apt-get install wget zip unzip curl psmisc
+            sudo apt-key update
+            sudo apt-get install wget zip unzip curl psmisc --force-yes
             curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
             sudo apt install nodejs
             python3 -m venv venv
