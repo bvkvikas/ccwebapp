@@ -20,7 +20,6 @@ jobs:
           name: install dependencies
           command: |
             sudo apt-get update
-            sudo apt-key update
             sudo apt-get install wget zip unzip curl psmisc --force-yes
             curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
             sudo apt install nodejs
